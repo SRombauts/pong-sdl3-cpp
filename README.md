@@ -113,13 +113,15 @@ cmake --build build
 
 ### Tests
 
-The unit-test target is built by default and can be executed via CTest after building:
+The unit-test target `pong-sdl3-cpp-tests` is built by default alongside the main executable. It uses [doctest](https://github.com/doctest/doctest), fetched at configure time via CMake `FetchContent` and pinned to a specific upstream tag. After building, run all tests via CTest:
 
 ```bash
 ctest --test-dir build --output-on-failure
 ```
 
-It can be disabled at configure time with `-DBUILD_TESTING=OFF` (CMake's standard option, set by `include(CTest)`).
+Each `TEST_CASE` is registered as an individual CTest entry through `doctest_discover_tests()`. The test executable can also be invoked directly (`build/pong-sdl3-cpp-tests` on Linux/macOS, `build\tests\Debug\pong-sdl3-cpp-tests.exe` on Windows with a Visual Studio generator) and accepts all standard `doctest` command-line filters.
+
+Testing can be disabled at configure time with `-DBUILD_TESTING=OFF` (CMake's standard option, set by `include(CTest)`); doing so also skips the `FetchContent` download of `doctest`.
 
 ## Dependencies
 

@@ -10,34 +10,7 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 ## Milestone: Repository, build scripts & CI
 
-> The following deliverables of this milestone are already implemented in the repository and therefore do not need a backlog entry: core scaffolding (`README.md`, `LICENSE`, `.gitignore`, `docs/ROADMAP.md`), the minimal `CMakeLists.txt` + `src/main.cpp`, and the build scripts (`scripts/build.sh`, `scripts/build.ps1`, `scripts/build.cmd`).
-
-### Integrate `doctest` via `FetchContent` and add unit-test target
-
-**Labels:** `cmake`, `tests`, `infra`
-
-#### Description
-
-Set up the unit-test infrastructure for the project: acquire `doctest` through CMake `FetchContent` (no system package or git submodule), create a separate test executable under `tests/`, wire it into CTest, and make it pass with a single smoke test. This is intentionally done before any real domain code so that every later milestone can ship its own tests on top of an existing scaffold. The same `FetchContent` mechanism will be reused for SDL3 in the next milestone.
-
-#### Tasks
-
-- [ ] In the top-level `CMakeLists.txt`, call `include(CTest)` (which sets the standard `BUILD_TESTING` option, defaulted ON).
-- [ ] Inside an `if(BUILD_TESTING) ... endif()` block, declare `FetchContent_Declare(doctest GIT_REPOSITORY https://github.com/doctest/doctest.git GIT_TAG v2.4.11)` (or the latest stable tag) and call `FetchContent_MakeAvailable(doctest)`.
-- [ ] Add `tests/CMakeLists.txt` defining an executable target `pong-sdl3-cpp-tests` linked against `doctest::doctest`.
-- [ ] Use `doctest_discover_tests()` from `doctest/cmake/doctest.cmake` so each `TEST_CASE` is registered as an individual CTest entry.
-- [ ] Add `tests/main.cpp` defining `DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN` and including `doctest/doctest.h`.
-- [ ] Add `tests/test_smoke.cpp` with one trivial `TEST_CASE("smoke") { CHECK(1 + 1 == 2); }`.
-- [ ] Document the test target and the `BUILD_TESTING` switch in `README.md`.
-
-#### Acceptance criteria
-
-- After `cmake -S . -B build && cmake --build build`, the `pong-sdl3-cpp-tests` executable exists and runs successfully on its own.
-- `ctest --test-dir build --output-on-failure` lists at least one test (the smoke test) and reports it as passing on Windows and Linux.
-- `cmake -S . -B build -DBUILD_TESTING=OFF && cmake --build build` builds successfully and does **not** produce the test target.
-- The doctest version is pinned to a specific release tag, never `master` or `main`.
-
----
+> The following deliverables of this milestone are already implemented in the repository and therefore do not need a backlog entry: core scaffolding (`README.md`, `LICENSE`, `.gitignore`, `docs/ROADMAP.md`), the minimal `CMakeLists.txt` + `src/main.cpp`, the build scripts (`scripts/build.sh`, `scripts/build.ps1`, `scripts/build.cmd`), and the `doctest`/CTest unit-test scaffold (issue #1).
 
 ### Add GitHub Actions CI workflow
 
