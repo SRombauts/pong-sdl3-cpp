@@ -113,7 +113,33 @@ cmake --build build
 
 ### Tests
 
-The unit-test target `pong-sdl3-cpp-tests` is built by default alongside the main executable. It uses [doctest](https://github.com/doctest/doctest), fetched at configure time via CMake `FetchContent` and pinned to a specific upstream tag. After building, run all tests via CTest:
+The unit-test target `pong-sdl3-cpp-tests` is built by default alongside the main executable. It uses [doctest](https://github.com/doctest/doctest), fetched at configure time via CMake `FetchContent` and pinned to a specific upstream tag.
+
+After building, run all tests via the thin test scripts (which wrap CTest):
+
+```powershell
+scripts\test.ps1
+```
+
+```bash
+./scripts/test.sh
+```
+
+Both scripts default to `Debug` configuration. Useful overrides:
+
+```powershell
+scripts\test.ps1 -Config Release
+scripts\test.ps1 -ExtraArgs '-R','smoke','-j','4'
+```
+
+```bash
+./scripts/test.sh --config Release
+./scripts/test.sh -- -R smoke -j 4
+```
+
+A `scripts\test.cmd` wrapper is also provided for use from `cmd.exe`.
+
+The scripts deliberately do **not** trigger a build; they fail fast with a clear message if `build/` does not exist. Build first via `scripts/build.{ps1,sh}`. The raw CTest invocation also works as a fallback:
 
 ```bash
 ctest --test-dir build --output-on-failure
