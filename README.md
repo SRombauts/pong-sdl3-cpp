@@ -148,6 +148,24 @@ Each `TEST_CASE` is registered as an individual CTest entry through `doctest_dis
 
 Testing can be disabled at configure time with `-DBUILD_TESTING=OFF` (CMake's standard option, set by `include(CTest)`); doing so also skips the `FetchContent` download of `doctest`.
 
+### Formatting
+
+C++ formatting is pinned by [`.clang-format`](.clang-format) at the repository root (Allman braces, 4-space indent, 120-column limit, based on `LLVM`). Editor-level settings (indent style, line endings, charset, final newline) are pinned by [`.editorconfig`](.editorconfig) and are picked up automatically by editors that support EditorConfig.
+
+Apply the format in place to all C++ sources:
+
+```bash
+clang-format -i src/main.cpp tests/*.cpp
+```
+
+Verify without rewriting (used by CI):
+
+```bash
+clang-format --dry-run --Werror src/main.cpp tests/*.cpp
+```
+
+The CI workflow runs the verification step on every push and pull request and will fail the build on any unformatted change.
+
 ## Dependencies
 
 - C++20 compiler.

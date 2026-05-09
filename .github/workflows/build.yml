@@ -7,6 +7,18 @@ on:
     branches: [main]
 
 jobs:
+  format:
+    name: Format check (clang-format)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show clang-format version
+        run: clang-format --version
+
+      - name: Verify formatting
+        run: clang-format --dry-run --Werror src/main.cpp tests/*.cpp
+
   build:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
