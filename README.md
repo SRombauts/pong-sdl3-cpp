@@ -101,14 +101,14 @@ cmake
 
 The repository issues are organized around the following planned milestones:
 
-0. M0 - Github repository & infrastructure
-1. M1 - Window and game loop
-2. M2 - Static playfield
-3. M3 - Paddle controls
-4. M4 - Ball and collisions
-5. M5 - Scoring and match flow
-6. M6 - Screens and menus
-7. M7 - One-player AI
-8. M8 - Audio and polish
+- Repository, build scripts & CI
+- SDL3 window and game loop
+- Static playfield
+- Paddle controls
+- Ball and collisions
+- Scoring and match flow
+- Screens and menus
+- One-player AI
+- Audio and polish
 
 A detailed roadmap is available in [`docs/ROADMAP.md`](docs/ROADMAP.md).
