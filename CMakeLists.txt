@@ -27,6 +27,12 @@ endif()
 if(BUILD_TESTING)
     include(FetchContent)
 
+    # doctest v2.4.11 still declares compatibility with CMake versions
+    # older than 3.5. CMake 4 rejects that by default, so provide the
+    # minimum policy version expected by modern CMake before adding the
+    # third-party project through FetchContent.
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
     # Keep doctest lean: do not build its own tests/examples and do not
     # install it. These cache vars must be set before MakeAvailable so the
     # doctest sub-project picks them up.
