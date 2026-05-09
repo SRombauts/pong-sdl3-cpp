@@ -56,23 +56,52 @@ Planned default controls:
 
 ## Build
 
-This project uses CMake and SDL3.
+This project uses CMake. SDL3 will be added in a later milestone; the current build is dependency-free.
+
+The repository ships with thin build scripts that wrap CMake. They produce an out-of-source build under `build/` and default to a Debug configuration.
+
+### Windows (PowerShell)
+
+```powershell
+scripts\build.ps1
+```
+
+By default this uses the latest installed Visual Studio as the CMake generator (detected through `vswhere.exe`) and targets `x64`. Useful overrides:
+
+```powershell
+scripts\build.ps1 -Config Release
+scripts\build.ps1 -Generator Ninja -Config Release
+scripts\build.ps1 -Clean
+scripts\build.ps1 -Help    # see Get-Help scripts\build.ps1 for full options
+```
+
+A `scripts\build.cmd` wrapper is also provided for use from `cmd.exe`:
+
+```cmd
+scripts\build.cmd
+```
+
+The resulting executable is under `build\Debug\pong-sdl3-cpp.exe` (or `build\Release\` for a Release build) when using a Visual Studio generator.
+
+### Linux and macOS
+
+```bash
+./scripts/build.sh
+./scripts/build.sh --config Release
+./scripts/build.sh --generator Ninja --config Release
+./scripts/build.sh --clean
+./scripts/build.sh --help
+```
+
+The resulting executable is `build/pong-sdl3-cpp`.
+
+### Plain CMake
+
+The scripts are optional; you can always invoke CMake directly:
 
 ```bash
 cmake -S . -B build
 cmake --build build
-```
-
-Run:
-
-```bash
-./build/pong-sdl3-cpp
-```
-
-On Windows, the executable path may differ depending on the generator, for example:
-
-```powershell
-.\build\Debug\pong-sdl3-cpp.exe
 ```
 
 ## Dependencies
