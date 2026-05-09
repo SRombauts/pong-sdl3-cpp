@@ -27,7 +27,7 @@ Scope:
 - Acquire `doctest` through CMake `FetchContent`, pinned to a specific release tag, so the project stays self-contained and reproducible without a system-wide install or a separate package manager. The same `FetchContent` mechanism is reused for SDL3 in the next milestone.
 - Add a unit-test target under `tests/`, gated behind CMake's standard `BUILD_TESTING` option (set by `include(CTest)`, defaulted ON for developers), and wire it into CTest.
 - Add a single smoke test (for example asserting `1 + 1 == 2`) so the test target actually compiles and `ctest` actually runs. Real tests are added in later milestones.
-- Add a GitHub Actions workflow under `.github/workflows/build.yml` that, on every push and pull request to `main`, builds the project and runs `ctest --output-on-failure`, on at least Windows latest (MSVC) and Ubuntu latest (GCC or Clang).
+- Add a GitHub Actions workflow under `.github/workflows/build.yml` that, on every push and pull request to `main`, builds the project and runs `ctest --output-on-failure`, on at least Windows latest (MSVC), Ubuntu latest (GCC or Clang), and macOS latest (Apple Clang).
 - Keep scripts thin: they should call CMake, not become a custom build system.
 - Add a `.editorconfig` so editors agree on indentation, line endings, and trailing newlines.
 - Add a `.clang-format` describing the project's formatting style.
@@ -50,7 +50,7 @@ Acceptance criteria:
 - The executable prints a simple hello-world message.
 - A developer can build locally using one command.
 - The unit-test target builds and `ctest` passes locally and in CI, even before any real tests exist.
-- GitHub Actions builds the project and runs the test suite on every push and pull request, on at least Windows and Linux.
+- GitHub Actions builds the project and runs the test suite on every push and pull request, on at least Windows, Linux, and macOS.
 - CI status is visible on pull requests.
 - The workflow remains simple enough to extend when SDL3 is introduced.
 - No SDL3 dependency is required yet.
@@ -231,14 +231,11 @@ Goal: harden the project once the playable MVP is finished. Optional, can be tac
 
 Scope:
 
-- Add macOS (latest) to the CI matrix.
 - Package release artifacts on tag pushes (a zip per platform with the executable and any required runtime libraries).
 - Add code coverage on Linux + GCC using `gcovr` or `llvm-cov` and publish the report as a CI artifact.
 - Add a basic static-analysis step in CI (`clang-tidy` on Linux, optionally MSVC `/analyze` on Windows). Treat findings as informational at first.
 
 Acceptance criteria:
 
-- macOS CI is green on every push and pull request.
 - Tag pushes produce downloadable artifacts on every CI platform that is green.
-- macOS artifacts are produced once macOS CI is green.
 - A coverage report and a static-analysis report are produced by CI, even if not enforced.
