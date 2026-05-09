@@ -187,3 +187,16 @@ The repository issues are organized around the following planned milestones:
 - Quality and release (post-MVP)
 
 A detailed roadmap is available in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+## Repository conventions and agent skills
+
+Per-task guidance for both human contributors and AI coding agents lives under [`.claude/skills/`](.claude/skills/). Each skill is a small `SKILL.md` with a YAML frontmatter and a focused body covering one topic:
+
+- [`build/`](.claude/skills/build/SKILL.md) — how to build and run the project.
+- [`test/`](.claude/skills/test/SKILL.md) — how to run, filter, or disable the test suite.
+- [`format/`](.claude/skills/format/SKILL.md) — how to format and verify C/C++ sources with `clang-format`.
+- [`repo-conventions/`](.claude/skills/repo-conventions/SKILL.md) — directory layout, naming conventions, and where new code/tests go.
+- [`agent-response-style/`](.claude/skills/agent-response-style/SKILL.md) — default tone and reasoning style for AI coding agents.
+- [`development-workflow/`](.claude/skills/development-workflow/SKILL.md) — branch / commit / PR workflow for working on a numbered task.
+
+Read these before opening a pull request; they are the source of truth for the dev loop.
