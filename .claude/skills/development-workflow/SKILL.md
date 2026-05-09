@@ -2,8 +2,8 @@
 name: development-workflow
 description: >-
   Standard end-to-end workflow for working on a task in this repository:
-  branch naming, implement + tests + style, self-review, commit, and
-  `docs/ISSUES.md` cleanup.
+  branch naming, implement + tests + style, self-review, commit,
+  `docs/ISSUES.md` cleanup, push, and PR draft.
   Use when starting work on a numbered task from a GitHub issue.
 ---
 
@@ -16,6 +16,8 @@ When working on a task, follow these steps in order:
 3. take a step back to review carefully the changes: are they complete & accurate? Is this really the best solution possible?
 4. make a commit with a short description
 5. remove the task from the `docs/ISSUES.md`
+6. once the task is supposedly complete, push the branch to the remote
+7. draft a PR title and description
 
 ## Scope rule (read first)
 
@@ -60,7 +62,7 @@ Before committing, re-read the diff with these checks:
 - Write a short, imperative commit description (one line is usually enough). Match the style of recent commits (`git log --oneline`).
 - Multiple commits per task are fine — one task = one branch, not one commit. Each commit should be a coherent, reviewable slice of the task.
 - Do not amend or force-push without explicit user request.
-- Do not push to remote unless the user asks for it.
+- Pushing happens in step 6, not here. Keep commits local until the task is complete.
 
 ### Step 5 — remove from `docs/ISSUES.md`
 
@@ -71,6 +73,28 @@ Do this only once the task as a whole is complete (all required scope has landed
 - If the milestone heading still has remaining entries, leave it; if it is now empty, leave the heading and update the milestone preamble note (the `> The following deliverables…` line) to reflect what is now done.
 - The cleanup may go in the final implementation commit or in a small dedicated follow-up commit on the same branch.
 
+### Step 6 — push the branch
+
+Once the task is supposedly complete (all scope landed, build green, tests passing, `docs/ISSUES.md` cleaned up), push the branch to the remote so it is ready for review.
+
+- Push the current branch with upstream tracking on first push: `git push -u origin HEAD`.
+- On subsequent pushes for the same branch, a plain `git push` is enough.
+- Never force-push without explicit user request. If the remote rejects a push because of diverged history, stop and ask the user before rewriting history.
+- If the build, tests, or self-review revealed unfinished work, go back to step 2 instead of pushing.
+
+### Step 7 — draft a PR title and description
+
+After pushing, draft a pull request title and description for the user to review. Do not open the PR automatically unless the user asks for it.
+
+- Title: short, imperative, and prefixed with the issue number when available, e.g. `#12 Add paddle input handling`. Match the style of recent commits / PRs.
+- Description should include:
+  - A one- or two-sentence summary of what the change does and why.
+  - A `Closes #<taskid>` (or `Refs #<taskid>`) line linking the GitHub issue.
+  - A short bullet list of the main changes (features, tests, docs).
+  - Any noteworthy trade-offs, follow-ups, or things explicitly out of scope.
+  - Test evidence: which build/test commands were run and their outcome.
+- Present the draft to the user in chat and wait for confirmation before running `gh pr create` (or equivalent).
+
 ## When this skill applies
 
-Apply this workflow for every numbered task in `docs/ISSUES.md` and every filed GitHub issue. For trivial out-of-band fixes (typos, comment-only edits) the branch + commit + ISSUES cleanup steps still apply, but steps 2 and 3 collapse to a single read-through.
+Apply this workflow for every numbered task in `docs/ISSUES.md` and every filed GitHub issue. For trivial out-of-band fixes (typos, comment-only edits) the branch + commit + ISSUES cleanup + push + PR draft steps still apply, but steps 2 and 3 collapse to a single read-through.
