@@ -43,7 +43,6 @@ The original Atari Pong arcade game was a local two-player game. This project st
 
 ### Post-MVP infrastructure
 
-- Continuous integration on macOS in addition to Windows and Linux.
 - Release artifact packaging on tag pushes.
 - Code coverage reports.
 - Basic static analysis.

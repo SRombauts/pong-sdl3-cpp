@@ -10,38 +10,7 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 ## Milestone: Repository, build scripts & CI
 
-> The following deliverables of this milestone are already implemented in the repository and therefore do not need a backlog entry: core scaffolding (`README.md`, `LICENSE`, `.gitignore`, `docs/ROADMAP.md`), the minimal `CMakeLists.txt` + `src/main.cpp`, the build scripts (`scripts/build.sh`, `scripts/build.ps1`, `scripts/build.cmd`), and the `doctest`/CTest unit-test scaffold (issue #1).
-
-### Add GitHub Actions CI workflow
-
-**Labels:** `ci`, `infra`, `tests`
-
-**Depends on:** _Integrate doctest via FetchContent_
-
-#### Description
-
-Add a CI workflow that builds the project and runs the test suite on every push and pull request to `main`, on Windows and Linux. CI must fail on a non-zero CTest exit code so breakage on either platform blocks merges.
-
-#### Tasks
-
-- [ ] Add `.github/workflows/build.yml` with a clear `name`, triggers `on: push` and `on: pull_request` targeting the `main` branch.
-- [ ] Use a build matrix with at least `os: [windows-latest, ubuntu-latest]`.
-- [ ] Steps per job: `actions/checkout@v4`, configure (`cmake -S . -B build`), build (`cmake --build build --config Debug`), and test (`ctest --test-dir build --output-on-failure -C Debug`).
-- [ ] Optionally cache `build/_deps/` keyed on the doctest tag to skip re-cloning on every run.
-- [ ] Make the CI badge URL available; adding the badge itself to the README can be a follow-up issue if preferred.
-
-#### Acceptance criteria
-
-- The workflow appears in the GitHub Actions tab.
-- Both `windows-latest` and `ubuntu-latest` jobs run and turn green on a no-op PR.
-- A deliberately failing test causes the corresponding job to turn red.
-- The workflow is no longer than ~50 lines of YAML.
-
-#### Notes
-
-- macOS is intentionally **not** part of this matrix; it is captured by the post-MVP _"Quality and release"_ milestone.
-
----
+> The following deliverables of this milestone are already implemented in the repository and therefore do not need a backlog entry: core scaffolding (`README.md`, `LICENSE`, `.gitignore`, `docs/ROADMAP.md`), the minimal `CMakeLists.txt` + `src/main.cpp`, the build scripts (`scripts/build.sh`, `scripts/build.ps1`, `scripts/build.cmd`), the `doctest`/CTest unit-test scaffold (issue #1), and the GitHub Actions CI workflow (issue #2).
 
 ### Add editor formatting config (`.editorconfig` + `.clang-format`)
 
