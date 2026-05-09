@@ -1,0 +1,33 @@
+---
+# C++ formatting style for pong-sdl3-cpp.
+# `.editorconfig` is the source of truth for editor-level settings (indent,
+# line endings, final newline); this file is the source of truth for C++
+# formatting and is consumed by clang-format.
+#
+# Brace style: Allman — braces on their own line. Picked over Attach/LLVM so
+# that function, control-flow, and type bodies are visually separated and
+# diffs around braces stay clean. The existing code in `src/` and `tests/`
+# already follows this convention.
+
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++17
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+
+BreakBeforeBraces: Allman
+
+# With Allman braces, never collapse function/if/loop bodies onto a single
+# line — that would defeat the "braces on their own line" rule. `Empty`
+# still allows `Foo() {}` for trivial empty bodies, which reads fine.
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Keep access modifiers flush with the class indent rather than the
+# LLVM default of half-indent, which looks off at IndentWidth: 4.
+AccessModifierOffset: -4
+...
