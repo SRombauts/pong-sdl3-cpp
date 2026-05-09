@@ -4,7 +4,7 @@ A Pong clone written in modern C++ with SDL3.
 
 This repository is intended as a small, finishable 2D game programming project.
 The first target is a faithful two-player Pong-style game.
-A one-player mode against a simple AI could be planned as a later extension.
+A one-player mode against a simple AI is planned as a later extension.
 
 ## Project goals
 
@@ -36,10 +36,17 @@ The original Atari Pong arcade game was a local two-player game. This project st
 - Mode selection screen.
 - Pause screen.
 - Game-over screen.
-- One-player mode against AI.
+- One-player mode against an AI opponent.
 - Minimal arcade-style sound effects.
 - Debug overlay.
 - Visual polish.
+
+### Post-MVP infrastructure
+
+- Continuous integration on macOS in addition to Windows and Linux.
+- Release artifact packaging on tag pushes.
+- Code coverage reports.
+- Basic static analysis.
 
 ## Controls
 
@@ -56,7 +63,7 @@ Planned default controls:
 
 ## Build
 
-This project uses CMake. SDL3 will be added in a later milestone; the current build is dependency-free.
+This project uses CMake. SDL3 and the unit-test framework (`doctest`) are acquired through CMake `FetchContent` from pinned upstream tags, so no separate package manager or system-wide install is required for them. SDL3 is introduced in the second milestone; until then the runtime executable itself is dependency-free, although `doctest` is already fetched as a build-time dependency for the test target.
 
 The repository ships with thin build scripts that wrap CMake. They produce an out-of-source build under `build/` and default to a Debug configuration.
 
@@ -104,13 +111,24 @@ cmake -S . -B build
 cmake --build build
 ```
 
+### Tests
+
+The unit-test target is built by default and can be executed via CTest after building:
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+It can be disabled at configure time with `-DBUILD_TESTING=OFF` (CMake's standard option, set by `include(CTest)`).
+
 ## Dependencies
 
 - C++20 compiler.
 - CMake 3.24 or newer.
-- SDL3 development package discoverable by CMake.
+- Network access at first configure time, so CMake can fetch SDL3 and `doctest` via `FetchContent`.
+- On Linux, SDL3's transitive system dev-headers (X11/Wayland/OpenGL/EGL/PulseAudio/ALSA) so SDL3 can build from source. On Windows with MSVC, no extra packages are required.
 
-The initial `CMakeLists.txt` expects SDL3 to expose the `SDL3::SDL3` CMake target.
+SDL3 is consumed through the standard `SDL3::SDL3` CMake target.
 
 ## Suggested GitHub topics
 
@@ -139,5 +157,6 @@ The repository issues are organized around the following planned milestones:
 - Screens and menus
 - One-player AI
 - Audio and polish
+- Quality and release (post-MVP)
 
 A detailed roadmap is available in [`docs/ROADMAP.md`](docs/ROADMAP.md).
