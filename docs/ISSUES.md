@@ -12,28 +12,6 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 > The following deliverables of this milestone are already implemented in the repository and therefore do not need a backlog entry: core scaffolding (`README.md`, `LICENSE`, `.gitignore`, `docs/ROADMAP.md`), the minimal `CMakeLists.txt` + `src/main.cpp`, the build scripts (`scripts/build.sh`, `scripts/build.ps1`, `scripts/build.cmd`), the `doctest`/CTest unit-test scaffold (issue #1), and the GitHub Actions CI workflow (issue #2).
 
-### Add editor formatting config (`.editorconfig` + `.clang-format`)
-
-**Labels:** `tooling`, `infra`
-
-#### Description
-
-Pin formatting expectations so that contributors and AI agents converge on a single style without arguing. `.editorconfig` covers indentation, line endings, charset, and final newlines for any editor that supports it; `.clang-format` is the source of truth for C++ formatting.
-
-#### Tasks
-
-- [ ] Add `.editorconfig` at the repository root with: `root = true`, `indent_style = space`, `indent_size = 4`, `end_of_line = lf`, `charset = utf-8`, `trim_trailing_whitespace = true`, `insert_final_newline = true`. Override `indent_size = 2` for `*.{yml,yaml,json,md}`.
-- [ ] Add `.clang-format` at the repository root, based on a known preset (`BasedOnStyle: LLVM` is the simplest starting point), with `IndentWidth: 4`, `ColumnLimit: 120`, and an explicit brace style (`BreakBeforeBraces: Allman` is suggested; pick one and document it).
-- [ ] Run `clang-format -i src/main.cpp tests/*.cpp` once after creating the file so the existing code matches.
-
-#### Acceptance criteria
-
-- `.editorconfig` is present at the repository root.
-- `.clang-format` is present at the repository root.
-- `clang-format --dry-run --Werror src/main.cpp tests/*.cpp` exits with code 0 (no diff).
-
----
-
 ### Add agent skills under `.claude/skills/`
 
 **Labels:** `docs`, `infra`, `tooling`
