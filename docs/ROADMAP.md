@@ -107,21 +107,68 @@ Acceptance criteria:
 
 ## Paddle controls
 
-Goal: make the two paddles controllable.
+Goal: make the two paddles controllable, with an input layer that other devices (mouse, gamepad, AI) can plug into in later milestones.
 
 Scope:
 
 - Introduce a `Paddle` struct with position, half-size, and speed; replace the hard-coded paddle rectangles from the previous milestone by reading from these structs.
-- Add keyboard input state.
-- Map W&Z/S to the left paddle.
-- Map Up/Down arrows to the right paddle.
+- Introduce a small `PaddleController` abstraction (one instance per paddle) so the paddle's update step does not depend directly on a specific input device. A controller returns a per-tick request expressed both as a desired axis value in `[-1, +1]` (used by digital and stick-as-velocity inputs) and an optional target Y (used by mouse and AI). The paddle moves toward the target while remaining clamped by the paddle's speed cap, so no controller can teleport the paddle.
+- Implement `KeyboardPaddleController` as the first concrete controller. Map W and Z to "up" / S to "down" for the left paddle, and Up / Down arrows for the right paddle.
+- Add keyboard input state plumbing.
 - Move paddles using a variable timestep driven by the per-frame delta time.
 - Clamp paddles inside the playfield.
 
+Non-goals:
+
+- Mouse, gamepad, and single-gamepad couch co-op analog inputs (covered by the **Analog and gamepad controls** milestone).
+- AI-controlled paddles (covered by the **One-player AI** milestone, which adds an `AiPaddleController` that plugs into the same abstraction).
+
 Acceptance criteria:
 
-- Both local players can move their paddles.
+- Both local players can move their paddles with the keyboard.
 - Movement is framerate independent.
+- The paddle update code reads input only through `PaddleController`; it does not call SDL3 keyboard / mouse / gamepad APIs directly.
+
+## Analog and gamepad controls
+
+Goal: bring back the precise analog feel of the original Pong potentiometer paddles, and add modern gamepad support, including the single-gamepad couch co-op mode where one gamepad's two analog sticks drive both players.
+
+Scope:
+
+- Reuse the `PaddleController` abstraction introduced in the previous milestone; this milestone only adds new concrete implementations and the device-selection plumbing.
+- Add a `MousePaddleController` that maps the mouse's window-Y position to a target Y in playfield coordinates (using SDL3's renderer logical-presentation conversion). Hide the system cursor while this controller is active.
+- Initialize the SDL3 gamepad subsystem (`SDL_INIT_GAMEPAD`). Open and close gamepads in response to `SDL_EVENT_GAMEPAD_ADDED` / `SDL_EVENT_GAMEPAD_REMOVED` so hot-plugging works without a restart.
+- Read analog stick values either from `SDL_EVENT_GAMEPAD_AXIS_MOTION` events or from `SDL_GetGamepadAxis` each tick, normalize to `[-1, +1]`, and apply a small dead-zone (typically around 10 % of the axis range) so resting sticks do not drift.
+- Implement two gamepad-driven controllers:
+  - `GamepadStickPaddleController`: one stick (left stick by default) of one gamepad drives one paddle. Used when each player has their own gamepad.
+  - `GamepadSharedPaddleController`: one gamepad drives both paddles, left stick → P1, right stick → P2 (the explicit single-gamepad couch co-op mode).
+- Add a controller-assignment policy that picks default controllers based on the connected devices: zero gamepads → keyboard for both players (as in the previous milestone), one gamepad → shared-controller mode, two or more gamepads → first two gamepads with one stick each (P1 → first gamepad, P2 → second gamepad). Re-run the policy on hot-plug.
+- Add a placeholder runtime toggle (e.g. `M`) that hands the left paddle to `MousePaddleController`, and toggles back to whatever controller the assignment policy chose. The menus milestone will replace this with a proper picker.
+- Add unit tests for the pure logic of this milestone:
+  - Stick dead-zone normalization (raw axis input → normalized `[-1, +1]` output, including the dead-zone cutoff).
+  - Mouse window-Y to logical playfield-Y mapping (independent of any SDL3 call; pass the window and logical sizes as parameters).
+  - Controller-assignment policy as a function of the number of connected gamepads.
+
+Non-goals:
+
+- Custom per-key / per-button rebinding UI (deferred to **Screens and menus** or post-MVP).
+- Force feedback / rumble (post-MVP nice-to-have).
+- Per-axis sensitivity exposed through a settings menu (hardcoded constants for now).
+- Touch / accelerometer / extended-input support.
+
+Acceptance criteria:
+
+- The keyboard path from the previous milestone still works exactly as before (no regression).
+- Plugging in a single gamepad makes both analog sticks of that gamepad drive the two paddles, without restarting the application.
+- Plugging in a second gamepad reassigns each player to one full gamepad, without restarting.
+- Mouse mode visibly improves precision over keyboard for the left paddle.
+- Hot-plugging gamepads (connect or disconnect at runtime) is handled cleanly: no crash, no stuck binding, the assignment policy re-runs.
+- The new unit tests pass locally and in CI.
+
+Notes:
+
+- Use the SDL3 gamepad API (`SDL_Gamepad`, `SDL_GetGamepadAxis`, `SDL_EVENT_GAMEPAD_*`) rather than the lower-level joystick API; the gamepad layer abstracts over device-specific quirks.
+- CI runners typically have no physical gamepad attached. Tests for this milestone must therefore not require a real gamepad; they cover only the device-independent logic. End-to-end gamepad behaviour is a manual smoke test.
 
 ## Ball and collisions
 
@@ -193,9 +240,9 @@ Goal: add a 1-player extension against an AI opponent.
 
 Scope:
 
-- Have the AI control the right paddle (the left paddle stays player-controlled).
-- Add simple AI paddle tracking of the ball's vertical position.
-- Limit AI paddle speed (must use the same speed cap as the player).
+- Add an `AiPaddleController` that implements the `PaddleController` abstraction by computing a target Y from the ball's vertical position. It plugs into a paddle the same way as the keyboard, mouse, or gamepad controllers from earlier milestones.
+- Wire the AI controller to the right paddle in 1-player mode (the left paddle stays player-controlled).
+- Limit AI paddle speed (must use the same speed cap as the player); since the paddle's `PaddleController`-driven update already clamps motion to the speed cap, the AI cannot teleport.
 - Add at least one of: a reaction delay before the AI starts tracking, or a bounded prediction error on the targeted Y position.
 - Expose difficulty levels (for example Easy / Normal / Hard) wired to the mode selection screen, tuning speed and/or error.
 - Add unit tests for the AI controller: target-Y selection from the ball position, speed-cap enforcement, and bounded prediction error.

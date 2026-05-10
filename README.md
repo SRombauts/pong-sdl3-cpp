@@ -25,6 +25,7 @@ The original Atari Pong arcade game was a local two-player game. This project st
 - SDL3 window and renderer.
 - Fixed logical game resolution.
 - Two paddles controlled locally.
+- Multiple input methods: keyboard, mouse for analog precision, and gamepad analog sticks (including a single-gamepad couch co-op mode where one stick drives each paddle).
 - Ball movement and wall bounces.
 - Paddle collisions with angle variation.
 - Score tracking.
@@ -49,7 +50,9 @@ The original Atari Pong arcade game was a local two-player game. This project st
 
 ## Controls
 
-Planned default controls:
+The game can be played with the keyboard, the mouse, or a gamepad. Connecting or disconnecting a gamepad at runtime reassigns players without a restart.
+
+### Keyboard
 
 | Action | Key |
 | --- | --- |
@@ -59,6 +62,19 @@ Planned default controls:
 | Right paddle down | Down Arrow |
 | Start / confirm | Enter |
 | Pause / back | Escape |
+
+### Mouse
+
+The left paddle can optionally be driven by the mouse for analog-precise control, mirroring the feel of the original Atari Pong potentiometer paddles. The system cursor is hidden while mouse control is active.
+
+### Gamepad
+
+Multiple gamepads or a single shared gamepad both work:
+
+- **Two gamepads**: each player uses one gamepad's left stick.
+- **One shared gamepad**: left stick drives P1, right stick drives P2 (single-gamepad couch co-op, in the spirit of the original Pong).
+
+A small dead-zone is applied to resting sticks.
 
 ## Build
 
@@ -197,6 +213,7 @@ The repository issues are organized around the following planned milestones:
 - SDL3 window and game loop
 - Static playfield
 - Paddle controls
+- Analog and gamepad controls
 - Ball and collisions
 - Scoring and match flow
 - Screens and menus
