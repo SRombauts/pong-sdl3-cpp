@@ -4,6 +4,18 @@ This roadmap is intentionally incremental. The project starts with a single-file
 
 The first milestone deliberately avoids SDL3. This keeps the repository, build system, scripts, and CI simple before introducing external dependencies.
 
+## Testing strategy
+
+Tests are a first-class deliverable, not a per-milestone afterthought. The same bar applies to every milestone below.
+
+- **Every pure-logic unit ships with at least one `TEST_CASE`.** This covers math (collisions, reflection angles, dead-zones, frame-time arithmetic), state transitions (game-state machine, menu cursor, controller-assignment policy), and layout helpers (dashed-line segments, default starting positions, score-digit segments). Test code lands in the same pull request as the production code it covers.
+- **TDD is the preferred workflow for new pure-logic helpers.** Write the failing `TEST_CASE` first, implement until it passes, then refactor. This applies most cleanly to small free functions (clamping, normalization, AABB intersection) and to state-transition tables (one row of the table = one `SUBCASE`).
+- **SDL-touching code is excluded from unit tests.** Window/renderer creation, the SDL3 event pump, real gamepad hot-plug, and audio playback are validated by each milestone's manual smoke test ("opens a window, exits cleanly", "rally the ball without crashing", etc.). To keep this exclusion small, SDL access is concentrated inside `Application` and a handful of thin device adapters; everything else stays pure and testable.
+- **Time and randomness are injected, never read directly from globals.** `Application` owns a `Clock` (default `SdlTicksClock`, test `FakeClock`) and a seedable `RandomSource`. Gameplay code reads `dtSeconds` and random values through these abstractions so tests can drive the simulation deterministically. Both abstractions are introduced in the SDL3 milestone, before they have any consumer, to avoid retrofitting them later.
+- **Production source files live in a single CMake variable** (e.g. `PONG_SRC`) that both the executable target `pong-sdl3-cpp` and the test target `pong-sdl3-cpp-tests` consume. Adding a new `Foo.cpp` only requires editing the variable in one place; both targets pick it up automatically. The variable is introduced in the SDL3 milestone, before the first non-trivial production source lands. Per-target dependencies (SDL3, `doctest`) and compile flags are still set on each target individually — keep the two `target_link_libraries`/`target_compile_options` blocks visually adjacent in `CMakeLists.txt` so a reviewer can spot drift in one glance.
+
+Each milestone below carries its own concrete test list under "Scope". Acceptance criteria explicitly require those tests to pass locally and in CI.
+
 ## Repository, build scripts & CI
 
 Goal: establish a usable repository baseline and make local and remote builds repeatable before introducing SDL3.
@@ -72,6 +84,12 @@ Scope:
 - Drive an event loop that handles `SDL_EVENT_QUIT` cleanly.
 - Cap the frame rate (V-Sync when available, otherwise a simple manual cap) and expose a per-frame delta time value for later milestones.
 - Clear and present a black frame each tick.
+- Move the production source list into a single CMake variable (e.g. `PONG_SRC`) declared near the top of `CMakeLists.txt`, and pass it to both `add_executable(pong-sdl3-cpp ${PONG_SRC} src/main.cpp)` and `add_executable(pong-sdl3-cpp-tests ${PONG_SRC} ...)` (the latter declared in `tests/CMakeLists.txt`). Adding a new production file then requires editing exactly one place. Per-target settings (SDL3 link, `doctest` link, warning flags) stay on the individual targets; keep the two `target_*` blocks adjacent so divergence is visible to reviewers.
+- Inject a `Clock` abstraction into `Application`: a tiny interface with one virtual `now()` returning a monotonic timestamp. Provide `SdlTicksClock` (wraps `SDL_GetTicksNS`) as the default and `FakeClock` (returns scripted values) for tests. Move tick-delta-to-seconds conversion and the manual frame-cap arithmetic into pure free functions that take their inputs as parameters, so they have no SDL dependency.
+- Inject a seedable `RandomSource` abstraction into `Application` for use by later milestones (serve direction in **Ball and collisions**, AI noise in **One-player AI**). Production seeds it from a non-deterministic source at startup; tests pass a fixed seed. The abstraction is introduced now even without a consumer, to avoid a churn-y retrofit later.
+- Add unit tests for the pure helpers introduced by this milestone (TDD-friendly: write the `TEST_CASE` first):
+  - Tick-delta to `dtSeconds` conversion (including the wrap-around / zero-delta edge cases).
+  - Manual frame-cap arithmetic: given a target FPS and the elapsed nanoseconds since the last frame, return the sleep duration to pass to `SDL_DelayNS` (clamped to `0` when the frame already overran).
 
 Acceptance criteria:
 
@@ -80,6 +98,8 @@ Acceptance criteria:
 - The app has a stable main loop.
 - A per-frame delta time is computed and ready to be consumed by gameplay code.
 - Local scripts and CI still build successfully and `ctest` still passes.
+- The production source list exists once (as a CMake variable) and is consumed by both `pong-sdl3-cpp` and `pong-sdl3-cpp-tests`; adding a hypothetical `src/Foo.cpp` requires editing exactly one place.
+- The new unit tests for the frame-timing helpers pass locally and in CI.
 
 ## Static playfield
 
@@ -95,6 +115,10 @@ Scope:
 - Draw static paddles.
 - Draw static ball.
 - Draw placeholder score using the chosen text-rendering approach.
+- Add unit tests for the pure layout logic of this milestone (TDD-friendly: each helper is a small function with no SDL dependency):
+  - Dashed center-line segment computation: given playfield height, segment count, and gap, return the list of segment rectangles. Verify total covered length, gap respected, first/last segment positions.
+  - Default starting positions for both paddles and the ball as a function of the logical playfield dimensions and entity half-sizes (paddles centred vertically and inset from the side walls; ball centred).
+  - If the chosen score rendering uses 7-segment digits: the segment-on/off pattern for `0..9` and the per-segment rectangle layout for a digit drawn at a given top-left position.
 
 Non-goals:
 
@@ -104,6 +128,7 @@ Acceptance criteria:
 
 - The window shows a black background, two static paddles, a static ball, a center dashed line, and a placeholder score, all positioned in a classic Pong layout.
 - The window can be resized without distorting the playfield aspect ratio.
+- The new unit tests for the layout helpers pass locally and in CI.
 
 ## Paddle controls
 
@@ -113,10 +138,15 @@ Scope:
 
 - Introduce a `Paddle` struct with position, half-size, and speed; replace the hard-coded paddle rectangles from the previous milestone by reading from these structs.
 - Introduce a small `PaddleController` abstraction (one instance per paddle) so the paddle's update step does not depend directly on a specific input device. A controller returns a per-tick request expressed both as a desired axis value in `[-1, +1]` (used by digital and stick-as-velocity inputs) and an optional target Y (used by mouse and AI). The paddle moves toward the target while remaining clamped by the paddle's speed cap, so no controller can teleport the paddle.
-- Implement `KeyboardPaddleController` as the first concrete controller. Map W and Z to "up" / S to "down" for the left paddle, and Up / Down arrows for the right paddle.
+- Implement `KeyboardPaddleController` as the first concrete controller. Map W and Z to "up" / S to "down" for the left paddle, and Up / Down arrows for the right paddle. The controller reads its key state through a small adapter (e.g. a `KeyboardState` struct populated from `SDL_GetKeyboardState`), not directly from SDL, so tests can drive it with a fake state snapshot.
 - Add keyboard input state plumbing.
 - Move paddles using a variable timestep driven by the per-frame delta time.
 - Clamp paddles inside the playfield.
+- Add unit tests for the pure logic of this milestone (TDD-friendly):
+  - Paddle clamping to playfield bounds: top edge, bottom edge, no-op interior, paddle larger than the playfield as a defensive case.
+  - Paddle update step: given a `PaddleController` request, the current position, the speed cap, and `dt`, return the new position. Verifies that the speed cap always wins over a far target Y (no teleport), and that motion is framerate-independent (one large `dt` and many small `dt`s of equal sum produce the same total displacement).
+  - Axis-vs-target-Y precedence inside the paddle update step (which input wins when both are present, and why); the precedence is documented and tested.
+  - `KeyboardPaddleController` against a fake `KeyboardState`: W/Z held → axis = -1, S held → axis = +1, both held → axis = 0, neither held → axis = 0; same matrix for the right paddle's arrow keys.
 
 Non-goals:
 
@@ -128,6 +158,7 @@ Acceptance criteria:
 - Both local players can move their paddles with the keyboard.
 - Movement is framerate independent.
 - The paddle update code reads input only through `PaddleController`; it does not call SDL3 keyboard / mouse / gamepad APIs directly.
+- The new unit tests for paddle clamping, the update step, axis-vs-target precedence, and `KeyboardPaddleController` pass locally and in CI.
 
 ## Analog and gamepad controls
 
@@ -182,9 +213,15 @@ Scope:
 - Detect paddle collisions using AABB intersection.
 - Reflect the ball based on the vertical offset of the hit on the paddle, so the bounce angle varies within a bounded range (for example up to ±60° from horizontal).
 - On hit, push the ball outside the paddle before applying the new velocity, to prevent it from sticking.
-- Define and document a serve policy when the ball is reset (for example: serve toward the player who just lost the point, with a small random vertical angle).
+- Define and document a serve policy when the ball is reset (for example: serve toward the player who just lost the point, with a small random vertical angle). The random vertical angle is drawn from the `RandomSource` introduced in the SDL3 milestone, so the serve policy is deterministic under a fixed seed in tests.
 - Increase ball speed on each paddle hit, with a maximum speed cap, so rallies become harder over time.
-- Add unit tests covering the pure logic of this milestone using the test target introduced earlier: top/bottom wall bounce, AABB collision detection, reflection-angle computation, anti-stick correction, and serve-direction policy.
+- Add unit tests covering the pure logic of this milestone (TDD-friendly: each piece is a small free function with no SDL dependency):
+  - Top/bottom wall bounce: given a ball position, half-size, vertical velocity, and the playfield height, return the corrected position and the (possibly flipped) vertical velocity. Cover above-the-top, below-the-bottom, exactly-on-edge, and interior cases.
+  - AABB collision detection between the ball and a paddle (4 floats per box, bool out), including the touching-edge case.
+  - Reflection-angle computation: given the normalized hit offset on the paddle (`-1` at the top edge, `+1` at the bottom) and the incoming velocity, return the outgoing velocity. Verifies the bounce angle stays inside the documented ±60° envelope.
+  - Anti-stick correction: after a paddle collision, the ball is repositioned outside the paddle along the collision normal before the new velocity is applied (no overlap remains on the next frame).
+  - Speed-up curve: ball speed after `N` paddle hits matches the documented progression and saturates at the configured maximum-speed cap.
+  - Serve-direction policy: under a fixed `RandomSource` seed, the serve direction goes toward the side that just lost the point and the random vertical angle stays inside the documented bounds.
 
 Acceptance criteria:
 
@@ -204,7 +241,12 @@ Scope:
 - Replace the placeholder score from the previous milestone with the real, updating score.
 - Detect the winning score (target: first to 11 points, exposed as a tunable constant).
 - Reset the match.
-- Add unit tests for the pure logic of this milestone: out-of-bounds detection on the left and right edges, score increment for the correct side, win detection at the configured target score, and round-reset state.
+- Add unit tests for the pure logic of this milestone (TDD-friendly):
+  - Out-of-bounds detection on the left and right edges of the playfield (cover exactly-on-edge as well as past-the-edge).
+  - Score increment for the correct side as a function of the side the ball left from.
+  - Win detection at the configured target score, parameterized over several target values (e.g. first-to-3, first-to-11, first-to-21) so the same logic is exercised at multiple scales.
+  - Round-reset state: after a point, paddles return to their starting Y and the ball is re-served according to the serve policy.
+  - Match state machine: `(score_left, score_right, ball_out_event) → next_state` (continue rally, increment + reset, declare winner). One `SUBCASE` per row of the table.
 
 Acceptance criteria:
 
@@ -227,12 +269,16 @@ Scope:
 - Add restart and quit flows:
   - From the pause overlay: resume returns to gameplay; restart returns to the title screen; quit exits the application.
   - From the game-over screen: restart returns to the title screen; quit exits the application.
+- Add unit tests for the pure logic of this milestone (TDD-friendly: state-machine work is the cleanest TDD shape in the project):
+  - State-machine transition table: `(currentState, inputEvent) → nextState`. One `SUBCASE` per documented transition (Title → ModeSelect on Enter, ModeSelect → Playing on Enter, Playing ↔ Paused on Escape, Playing → GameOver on win condition, GameOver → Title on Enter, Paused → Title on restart, etc.). Unhandled inputs leave the state unchanged.
+  - Menu cursor navigation: `(currentIndex, itemCount, direction, wrapEnabled) → newIndex`, including wrap-around at both ends and the no-wrap variant.
 
 Acceptance criteria:
 
 - The game has clear navigation states driven by the state machine.
 - Gameplay code is not mixed with menu logic.
 - From a fresh launch, the user can reach Title → ModeSelect → Playing → Paused → Playing → GameOver → Title using only keyboard input.
+- The new unit tests for the state-machine transitions and menu cursor pass locally and in CI.
 
 ## One-player AI
 
@@ -243,9 +289,14 @@ Scope:
 - Add an `AiPaddleController` that implements the `PaddleController` abstraction by computing a target Y from the ball's vertical position. It plugs into a paddle the same way as the keyboard, mouse, or gamepad controllers from earlier milestones.
 - Wire the AI controller to the right paddle in 1-player mode (the left paddle stays player-controlled).
 - Limit AI paddle speed (must use the same speed cap as the player); since the paddle's `PaddleController`-driven update already clamps motion to the speed cap, the AI cannot teleport.
-- Add at least one of: a reaction delay before the AI starts tracking, or a bounded prediction error on the targeted Y position.
+- Add at least one of: a reaction delay before the AI starts tracking, or a bounded prediction error on the targeted Y position. Both are driven by the `Clock` and `RandomSource` injected into `Application` in the SDL3 milestone, so tests can advance time and seed randomness deterministically.
 - Expose difficulty levels (for example Easy / Normal / Hard) wired to the mode selection screen, tuning speed and/or error.
-- Add unit tests for the AI controller: target-Y selection from the ball position, speed-cap enforcement, and bounded prediction error.
+- Add unit tests for the AI controller (TDD-friendly):
+  - Target-Y selection: with reaction delay = 0 and prediction error = 0, the AI's target Y matches the ball's Y.
+  - Speed-cap enforcement: even with the target arbitrarily far, the AI paddle moves no faster than the player paddle's speed cap (validated via the same paddle update step tests use elsewhere).
+  - Bounded prediction error: with a fixed `RandomSource` seed, the per-frame error stays inside the documented `[-maxError, +maxError]` envelope across many samples.
+  - Reaction-delay model: with a delay of `D` seconds, the AI's target Y at time `t` matches the ball's Y at time `t - D` (cover `t < D` start-of-rally case as well).
+  - Difficulty-preset mapping: `Difficulty → (speedFactor, maxError, reactionDelay)` returns the documented values for each level.
 
 Acceptance criteria:
 
@@ -261,9 +312,12 @@ Scope:
 
 - Pick an audio backend (SDL3 native audio or `SDL3_mixer`) and integrate it through CMake (via `FetchContent`, like SDL3) and CI.
 - Add minimal arcade-style sound effects: wall bounce, paddle hit, score, and match end.
-- Add a debug overlay (toggleable) showing at least FPS and ball/paddle state.
+- Add a debug overlay (toggleable) showing at least FPS and ball/paddle state. The overlay text is built by a pure formatting function so it is unit-testable.
 - Add screenshots or a short GIF to the `README.md`.
 - Add small visual polish if useful (for example a brief flash when a point is scored).
+- Add unit tests for the pure logic added by this milestone:
+  - Debug-overlay text formatting: given an FPS value, ball state, and paddle states, return the expected display string.
+  - FPS smoothing: a moving average (or equivalent) over the last `N` frame durations returns the documented value for representative input sequences (constant frame time, sudden spike, warm-up before `N` samples are available).
 
 Acceptance criteria:
 
@@ -271,6 +325,7 @@ Acceptance criteria:
 - The debug overlay can be toggled at runtime.
 - The `README.md` contains at least one screenshot or GIF of the running game.
 - The full menu navigation chain from the previous milestone still works end-to-end (regression check).
+- The new unit tests for overlay formatting and FPS smoothing pass locally and in CI.
 
 ## Quality and release (post-MVP)
 
