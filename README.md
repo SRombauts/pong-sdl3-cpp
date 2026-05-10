@@ -1,5 +1,9 @@
 # Pong SDL3 C++
 
+[![Windows CI](https://img.shields.io/github/check-runs/SRombauts/pong-sdl3-cpp/main?nameFilter=windows-latest&label=Windows)](https://github.com/SRombauts/pong-sdl3-cpp/actions/workflows/build.yml)
+[![Ubuntu CI](https://img.shields.io/github/check-runs/SRombauts/pong-sdl3-cpp/main?nameFilter=ubuntu-latest&label=Ubuntu)](https://github.com/SRombauts/pong-sdl3-cpp/actions/workflows/build.yml)
+[![macOS CI](https://img.shields.io/github/check-runs/SRombauts/pong-sdl3-cpp/main?nameFilter=macos-latest&label=macOS)](https://github.com/SRombauts/pong-sdl3-cpp/actions/workflows/build.yml)
+
 A Pong clone written in modern C++ with SDL3.
 
 This repository is intended as a small, finishable 2D game programming project.
