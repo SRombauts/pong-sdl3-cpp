@@ -22,7 +22,7 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 #### Description
 
-Acquire SDL3 through CMake `FetchContent` (pinned to a release tag), reusing the same mechanism that was introduced for `doctest` in the previous milestone. Link the `pong-sdl3-cpp` executable against `SDL3::SDL3` and update CI so the Linux job has the system dev-headers needed to build SDL3 from source. This issue does not introduce any windowing or rendering code: it only proves the dependency can be acquired and linked on every supported platform.
+Acquire SDL3 through CMake `FetchContent` (pinned to a release tag), reusing the same mechanism that was introduced for `doctest` in the previous milestone. Link the `pong-sdl3-cpp` executable against `SDL3::SDL3` and update CI so the Linux job has the system dev-headers needed to build SDL3 from source. This issue does not introduce any windowing or rendering code: it only proves the dependency can be acquired and linked on every supported platform (Windows MSVC, Ubuntu GCC or Clang, and macOS Apple Clang).
 
 #### Tasks
 
@@ -30,15 +30,15 @@ Acquire SDL3 through CMake `FetchContent` (pinned to a release tag), reusing the
 - [ ] Pick a link mode by setting `SDL_SHARED`/`SDL_STATIC` cache variables before `FetchContent_MakeAvailable`. Suggested default: `SDL_SHARED=ON` (matches SDL3's upstream default; on Windows, copy `SDL3.dll` next to the executable via a CMake `add_custom_command(... POST_BUILD ...)`). Document the chosen mode.
 - [ ] Link the `pong-sdl3-cpp` target against `SDL3::SDL3`.
 - [ ] In `src/main.cpp`, include `<SDL3/SDL.h>` and call `SDL_GetVersion()` once on startup, printing the version. This proves linking works without exercising any subsystem.
-- [ ] In `.github/workflows/build.yml`, on the Ubuntu runner, install the SDL3 transitive dev-headers before configuring CMake: `libx11-dev libxext-dev libxrandr-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libgl1-mesa-dev libpulse-dev libasound2-dev`. Windows MSVC needs no extra packages.
+- [ ] In `.github/workflows/build.yml`, on the Ubuntu runner, install the SDL3 transitive dev-headers before configuring CMake: `libx11-dev libxext-dev libxrandr-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libgl1-mesa-dev libpulse-dev libasound2-dev`. Windows MSVC needs no extra packages. macOS needs no extra packages either: the Xcode Command Line Tools provide Apple Clang and SDL3 uses the system Cocoa/Metal/CoreAudio frameworks.
 - [ ] Add a CMake cache (or step) so SDL3 sources fetched into `build/_deps/` are cached in CI keyed on the SDL3 tag, to avoid recompiling SDL3 on every run.
 - [ ] Verify the `Dependencies` section of `README.md` matches the dev-header list installed in CI, and update if needed.
 
 #### Acceptance criteria
 
-- `cmake -S . -B build && cmake --build build` succeeds on Windows MSVC and on Ubuntu (GCC or Clang).
+- `cmake -S . -B build && cmake --build build` succeeds on Windows MSVC, on Ubuntu (GCC or Clang), and on macOS (Apple Clang).
 - The resulting `pong-sdl3-cpp` executable starts, prints the SDL3 version to stdout, and exits with code 0.
-- Both CI jobs are green; build logs show SDL3 being fetched and built once, then cached.
+- All three CI jobs (Windows, Ubuntu, macOS) are green; build logs show SDL3 being fetched and built once, then cached.
 - `ctest --output-on-failure` still passes (the smoke test is unaffected).
 - The SDL3 version is pinned to a specific release tag in `CMakeLists.txt`.
 
@@ -73,11 +73,11 @@ Build the SDL3 application around an `Application` class that owns the entire SD
 
 - Running the executable opens a black window titled `Pong SDL3 C++`.
 - Closing the window or pressing Escape exits the program with code 0.
-- The window survives at least 5 seconds without crashing on Windows and Linux.
+- The window survives at least 5 seconds without crashing on Windows, Linux, and macOS.
 - A per-frame `dtSeconds` is computed and passed into `update(double dtSeconds)`, ready to be consumed by gameplay code (even though `update()` is currently empty).
 - `main.cpp` does not contain any direct SDL3 call other than instantiating `Application`.
 - The `Application` class has a clean ownership model: no leaked `SDL_*` resources, no double-shutdown, no use-after-free on early exit paths (verifiable by reading the destructor and `init()` failure paths).
-- CI is still green; `ctest` still passes (the existing smoke test is unaffected).
+- CI is still green on Windows, Ubuntu, and macOS; `ctest` still passes (the existing smoke test is unaffected).
 
 #### Notes
 

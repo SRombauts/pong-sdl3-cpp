@@ -195,7 +195,7 @@ The CI workflow runs the verification step on every push and pull request and wi
 - C++20 compiler.
 - CMake 3.24 or newer.
 - Network access at first configure time, so CMake can fetch SDL3 and `doctest` via `FetchContent`.
-- On Linux, SDL3's transitive system dev-headers (X11/Wayland/OpenGL/EGL/PulseAudio/ALSA) so SDL3 can build from source. On Windows with MSVC, no extra packages are required.
+- On Linux, SDL3's transitive system dev-headers (X11/Wayland/OpenGL/EGL/PulseAudio/ALSA) so SDL3 can build from source. On Windows with MSVC, no extra packages are required. On macOS, the Xcode Command Line Tools provide Apple Clang; SDL3 uses the system Cocoa/Metal/CoreAudio frameworks, so no additional packages are required either.
 
 SDL3 is consumed through the standard `SDL3::SDL3` CMake target.
 
