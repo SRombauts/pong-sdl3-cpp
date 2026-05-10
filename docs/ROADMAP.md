@@ -65,13 +65,13 @@ Scope:
 - Link against the `SDL3::SDL3` target.
 - Update GitHub Actions for Linux to install SDL3's transitive system dev-headers (X11/Wayland/OpenGL/EGL/PulseAudio/ALSA), since `FetchContent` builds SDL3 from source. Windows MSVC does not need extra packages.
 - Update local build scripts only if needed.
-- Add SDL3 initialization and shutdown directly in `main.cpp`.
+- Implement an `Application` class (`src/Application.{h,cpp}`) that owns the SDL3 lifetime; keep `main.cpp` a thin entry point that instantiates the class and forwards its exit code. Subsequent milestones extend the class instead of editing `main.cpp` directly.
+- Inside the class, initialize and shut down SDL3 cleanly.
 - Create a window.
 - Create a renderer.
-- Add an event loop that handles `SDL_EVENT_QUIT` cleanly.
+- Drive an event loop that handles `SDL_EVENT_QUIT` cleanly.
 - Cap the frame rate (V-Sync when available, otherwise a simple manual cap) and expose a per-frame delta time value for later milestones.
-- Clear and present a black frame.
-- Once the bare SDL3 loop works, refactor the inline logic into a small `Application`/`Game` class that owns SDL3 initialization and shutdown, the window, the renderer, the event loop, and the per-frame delta time. Subsequent milestones extend that class instead of editing `main.cpp` directly.
+- Clear and present a black frame each tick.
 
 Acceptance criteria:
 
