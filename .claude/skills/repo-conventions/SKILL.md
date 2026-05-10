@@ -9,8 +9,8 @@ description: Repository layout and naming conventions. Use to find or place file
 
 | Path | Contents |
 | --- | --- |
-| `src/` | C++ application source. New domain code goes under `src/<area>/`. |
-| `tests/` | doctest unit tests. One file per area: `tests/test_<area>.cpp`. |
+| `src/` | C++ application source. New types live in `src/<TypeName>.{h,cpp}` directly under `src/`, or under `src/<area>/` once an area grows several related files. |
+| `tests/` | doctest unit tests. One file per area, CamelCase: `tests/<TypeName>Test.cpp`. The doctest entry point is `tests/main.cpp`. |
 | `scripts/` | Thin build/test wrappers (`build.{ps1,sh,cmd}`, `test.{ps1,sh,cmd}`). |
 | `docs/` | Long-form documentation: `ROADMAP.md`, `ISSUES.md`. |
 | `.github/` | CI workflows (`.github/workflows/build.yml`) and other GitHub config. |
@@ -20,14 +20,15 @@ description: Repository layout and naming conventions. Use to find or place file
 
 ## Where to put new code
 
-- New domain code (e.g. `paddle`, `ball`, `score`): create `src/<area>/` with the `.cpp`/`.hpp` files for that area.
-- Wire new sources into the existing `pong-sdl3-cpp` target in the top-level `CMakeLists.txt` (or, if the area grows, an `add_subdirectory(src/<area>)` with its own `CMakeLists.txt`).
-- Add the matching test file as `tests/test_<area>.cpp`. Append it to `tests/CMakeLists.txt` so it is compiled into `pong-sdl3-cpp-tests`; `doctest_discover_tests()` will register every `TEST_CASE` automatically.
+- New domain code (e.g. `Paddle`, `Ball`, `Score`): create `src/<TypeName>.h` and `src/<TypeName>.cpp` directly under `src/`. If an area grows enough to need a folder (several related files), promote it to `src/<area>/` with the same CamelCase rule for individual files.
+- Wire new sources into the existing `pong-sdl3-cpp` target in the top-level `CMakeLists.txt` (or, when an area gets its own folder, `add_subdirectory(src/<area>)` with its own `CMakeLists.txt`).
+- Add the matching test file as `tests/<TypeName>Test.cpp`. Append it to `tests/CMakeLists.txt` so it is compiled into `pong-sdl3-cpp-tests`; `doctest_discover_tests()` will register every `TEST_CASE` automatically.
 
 ## Naming
 
-- Source and test files: lowercase, snake_case, `.cpp` / `.hpp` extensions.
-- Test files always carry the `test_` prefix and mirror the area name: `tests/test_<area>.cpp`.
+- Source files use **CamelCase** matching the class, struct, or dominant namespace they contain. Example: a class `Application` lives in `Application.h` (header) and `Application.cpp` (implementation). Files that contain no class or struct (entry points, free-function modules) keep their conventional lowercase name; the most common case is `main.cpp`.
+- Header extension is `.h`; implementation extension is `.cpp`.
+- Test files mirror the unit they test, in CamelCase, with a `Test` suffix: tests for `Application` go into `tests/ApplicationTest.cpp`. The doctest entry point stays at `tests/main.cpp`.
 - CMake target names use kebab-case (`pong-sdl3-cpp`, `pong-sdl3-cpp-tests`).
 
 ## Build & test commands

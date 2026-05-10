@@ -1,6 +1,6 @@
 add_executable(pong-sdl3-cpp-tests
     main.cpp
-    test_smoke.cpp
+    SmokeTest.cpp
 )
 
 target_link_libraries(pong-sdl3-cpp-tests PRIVATE doctest::doctest)

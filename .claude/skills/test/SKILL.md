@@ -47,5 +47,5 @@ cmake -S . -B build -DBUILD_TESTING=OFF
 ## Rules
 
 - Always build before running tests; the scripts fail fast if `build/` does not exist.
-- Add new tests under `tests/test_<area>.cpp` and let `doctest_discover_tests()` pick them up; do not edit CTest registration by hand.
+- Add new tests under `tests/<TypeName>Test.cpp` (CamelCase, mirroring the type or area being tested) and let `doctest_discover_tests()` pick them up; do not edit CTest registration by hand.
 - A non-zero exit from CTest means a real failure — surface it rather than re-running blindly.

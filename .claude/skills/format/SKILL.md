@@ -27,7 +27,7 @@ Exit code 0 means clean. Any non-zero exit is a real diff that CI will reject.
 
 ## Scope
 
-The formatter targets C/C++ source under `src/` and `tests/`. As more areas are added (e.g. `src/<area>/*.cpp`, `tests/test_<area>.cpp`), include them in the same command.
+The formatter targets C/C++ source under `src/` and `tests/`. As more files are added (e.g. `src/<TypeName>.{h,cpp}`, `tests/<TypeName>Test.cpp`), include them in the same command.
 
 ## Rules
 
