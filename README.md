@@ -1,10 +1,18 @@
 # Pong SDL3 C++
 
+[![Windows CI](https://img.shields.io/github/check-runs/SRombauts/pong-sdl3-cpp/main?nameFilter=windows-latest&label=Windows)](https://github.com/SRombauts/pong-sdl3-cpp/actions/workflows/build.yml)
+[![Ubuntu CI](https://img.shields.io/github/check-runs/SRombauts/pong-sdl3-cpp/main?nameFilter=ubuntu-latest&label=Ubuntu)](https://github.com/SRombauts/pong-sdl3-cpp/actions/workflows/build.yml)
+[![macOS CI](https://img.shields.io/github/check-runs/SRombauts/pong-sdl3-cpp/main?nameFilter=macos-latest&label=macOS)](https://github.com/SRombauts/pong-sdl3-cpp/actions/workflows/build.yml)
+
 A Pong clone written in modern C++ with SDL3.
 
 This repository is intended as a small, finishable 2D game programming project.
 The first target is a faithful two-player Pong-style game.
 A one-player mode against a simple AI is planned as a later extension.
+
+Original Atari PONG (1972) arcade machine gameplay video (en) showing output from a real Atari/Syzygy board:
+
+[![Original Atari PONG (1972) arcade machine gameplay video (en)](https://img.youtube.com/vi/fiShX2pTz9A/hqdefault.jpg)](https://www.youtube.com/watch?v=fiShX2pTz9A)
 
 ## Project goals
 
@@ -235,3 +243,9 @@ Per-task guidance for both human contributors and AI coding agents lives under [
 - [`development-workflow/`](.claude/skills/development-workflow/SKILL.md) — branch / commit / PR workflow for working on a numbered task.
 
 Read these before opening a pull request; they are the source of truth for the dev loop.
+
+## Reference media
+
+Pong gameplay screenshot, from Wikimedia Commons (public domain):
+
+[![Pong gameplay screenshot](https://upload.wikimedia.org/wikipedia/commons/2/26/Pong.svg)](https://commons.wikimedia.org/wiki/File:Pong.svg)
