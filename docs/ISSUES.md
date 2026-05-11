@@ -16,46 +16,6 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 ## Milestone: SDL3 window and game loop
 
-### Extract the production source list into a shared CMake variable
-
-**Labels:** `build`, `tests`, `refactor`
-
-**Depends on:** _Implement the SDL3 main loop inside an Application class_
-
-#### Description
-
-Today, `tests/CMakeLists.txt` declares its own `add_executable(pong-sdl3-cpp-tests …)` that re-lists each source file it wants to test. As soon as `Paddle`, `Ball`, `Application` etc. exist, this forces every new production file to be added to two `CMakeLists.txt` files, and any divergence silently makes the test binary build a different set of sources than the shipped binary.
-
-The lightest fix that scales: declare the production source list once as a CMake variable (`PONG_SRC`) at the top of the root `CMakeLists.txt`, and pass it to both `add_executable` calls. Adding a new production file then requires editing exactly one place. Per-target settings (`target_link_libraries`, `target_compile_options`) stay on each target individually — keep the two blocks visually adjacent in the file so a reviewer can spot drift in one glance.
-
-This pattern is intentionally simpler than introducing a `pong-sdl3-cpp-lib` static library: for a project whose only deliverable is the executable, a separate library target adds graph complexity without a matching benefit. The trade-off is that each new transitive dependency (e.g. SDL3 in this very milestone) has to be linked into both targets manually, rather than once on a shared library — see Notes.
-
-This issue lands the refactor _before_ the first non-trivial production source (paddles, ball, state machine) so the test issues that follow can simply add a `Test.cpp` file and let `${PONG_SRC}` carry the production code in.
-
-#### Tasks
-
-- [ ] In the top-level `CMakeLists.txt`, declare `set(PONG_SRC src/Application.cpp)` (the only non-`main.cpp` source at this point) before any `add_executable` call. Use absolute paths via `${CMAKE_CURRENT_SOURCE_DIR}/src/...` so the variable can be consumed unchanged from `tests/CMakeLists.txt`, which sits one directory deeper.
-- [ ] Update `add_executable(pong-sdl3-cpp ...)` to read `add_executable(pong-sdl3-cpp ${PONG_SRC} src/main.cpp)`.
-- [ ] In `tests/CMakeLists.txt`, update the test target to `add_executable(pong-sdl3-cpp-tests ${PONG_SRC} main.cpp SmokeTest.cpp)`. Test files can now `#include "Application.h"` (and any future production header) without re-listing the corresponding `.cpp`.
-- [ ] Add a small `target_include_directories(pong-sdl3-cpp-tests PRIVATE ${CMAKE_SOURCE_DIR}/src)` (and the equivalent on the executable if needed) so test sources can include production headers without relative paths.
-- [ ] Add one trivial test (e.g. `tests/ApplicationTest.cpp` containing a `TEST_CASE` that constructs an `Application` description struct or verifies a header-only constant) just to prove `${PONG_SRC}` is correctly compiled into the test binary.
-- [ ] Update the `repo-conventions` skill (`.claude/skills/repo-conventions/SKILL.md`) to document the shared-variable pattern: production sources live in `${PONG_SRC}` in the root `CMakeLists.txt`; new files go there.
-
-#### Acceptance criteria
-
-- `cmake -S . -B build && cmake --build build` succeeds on Windows MSVC, Ubuntu, and macOS.
-- The production source list exists once (as the `PONG_SRC` CMake variable) and is consumed by both `pong-sdl3-cpp` and `pong-sdl3-cpp-tests`.
-- `pong-sdl3-cpp` still runs and behaves exactly as before.
-- `ctest --output-on-failure` still passes; the new link-path test is registered and green.
-- Adding a hypothetical `src/Foo.cpp` requires editing exactly one place (the `PONG_SRC` declaration).
-
-#### Notes
-
-- Trade-off: per-target dependencies and compile flags do _not_ propagate automatically. Each new transitive dependency (SDL3, future audio backend) must be linked into both targets explicitly, and warning options are duplicated between them. Mitigation: keep the two `target_link_libraries` / `target_compile_options` blocks adjacent in the file. If they ever grow large, extract a small helper macro `pong_apply_target_settings(<target>)`.
-- A `pong-sdl3-cpp-lib` static-library refactor was considered and rejected at this project size. It would have auto-propagated the per-target settings via `PUBLIC`, but at the cost of an extra target and a more complex build graph for a project whose only deliverable is the executable. Re-evaluate if the per-target settings ever drift in practice or if a future milestone needs to ship a library.
-
----
-
 ### Inject a `Clock` abstraction into `Application` and add unit tests for the frame-timing helpers
 
 **Labels:** `app`, `tests`, `tdd`
