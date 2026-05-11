@@ -64,6 +64,20 @@ Before committing, re-read the diff with these checks:
 - Do not amend or force-push without explicit user request.
 - Pushing happens in step 6, not here. Keep commits local until the task is complete.
 
+**Multi-line commit messages and shell portability.** Single-line subjects work the same everywhere: `git commit -m "Subject."`. For a subject + body, do not rely on bash heredocs (`git commit -m "$(cat <<'EOF' ... EOF)"`): they are a parse error on Windows PowerShell, which is the default shell for this repo's contributors. Use one of these instead:
+
+- Cross-shell, recommended: write the message to a file and pass it with `-F`. The git directory is a convenient scratch location that never gets committed:
+
+    ```
+    # write COMMIT_MSG.txt (subject line, blank line, body)
+    git commit -F .git/COMMIT_MSG.txt
+    # then delete the temp file
+    ```
+
+- Two `-m` flags also works on both shells and produces the same "subject + body" layout: `git commit -m "Subject." -m "Body paragraph."`.
+
+This note exists because the agent harness instructions assume a POSIX shell and would otherwise default to a heredoc that silently fails on Windows.
+
 ### Step 5 — remove from `docs/ISSUES.md`
 
 Do this only once the task as a whole is complete (all required scope has landed on the branch), not after every intermediate commit.
