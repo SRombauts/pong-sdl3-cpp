@@ -32,6 +32,13 @@ description: Repository layout and naming conventions. Use to find or place file
 - Test files mirror the unit they test, in CamelCase, with a `Test` suffix: tests for `Application` go into `tests/ApplicationTest.cpp`. The doctest entry point stays at `tests/main.cpp`.
 - CMake target names use kebab-case (`pong-sdl3-cpp`, `pong-sdl3-cpp-tests`).
 
+## Code comments
+
+- Describe **architecture, design goals, and *why***, not *how*. The code shows the "how"; comments earn their keep by explaining the choice, the invariant, or the rejected alternative.
+- Keep them **short**. A one- or two-line intent comment beats a paragraph re-narrating the code below.
+- Skip obvious comments. `// Returns the elapsed time in seconds` above `double secondsBetween(...)` is noise — the signature already says it.
+- Public-API contract notes (preconditions, defensive behaviour, ownership) are fine in headers when they document something the signature itself cannot.
+
 ## Build & test commands
 
 Use the wrappers, never hand-rolled `cmake`/`ctest` invocations, unless the wrappers are unavailable:

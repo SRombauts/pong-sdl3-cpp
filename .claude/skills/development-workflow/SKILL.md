@@ -70,6 +70,8 @@ Before committing, re-read the diff with these checks:
 
 **Bodies are optional, not the default.** Most commits in this repo are subject-only (see `git log --oneline -20` on `main`). Add a body only when the change has a non-obvious *why* that the subject cannot carry: an architectural trade-off, a deliberate deviation from a spec, a subtle behaviour change, or a foot-gun a future reader could miss. If a body is added, keep it tight (a short paragraph is plenty); long expository bodies belong in the PR description.
 
+**Format bodies like prose, not like a wall.** Wrap lines at roughly 72 columns and split distinct ideas into blank-line-separated paragraphs. Avoid one ~300-character line that crams three sentences together — it is hard to read in `git log`, in PR review UIs, and in narrow terminals.
+
 **Multi-line commit messages and shell portability.** Single-line subjects work the same everywhere: `git commit -m "Subject."`. For a subject + body, do not rely on bash heredocs (`git commit -m "$(cat <<'EOF' ... EOF)"`): they are a parse error on Windows PowerShell, which is the default shell for this repo's contributors. Use one of these instead:
 
 - Cross-shell, recommended: write the message to a file and pass it with `-F`. The git directory is a convenient scratch location that never gets committed:
@@ -83,6 +85,20 @@ Before committing, re-read the diff with these checks:
 - Two `-m` flags also works on both shells and produces the same "subject + body" layout: `git commit -m "Subject." -m "Body paragraph."`.
 
 This note exists because the agent harness instructions assume a POSIX shell and would otherwise default to a heredoc that silently fails on Windows.
+
+### Step 4b — updating earlier commits (amend / rebase)
+
+A mid-task refactor or revert from the user is a signal to rewrite the relevant earlier commit in place, not to pile a "fix the previous commit" patch on top.
+
+- **Trigger**: a refactor, revert, or rename that makes an earlier commit's diff or message inaccurate.
+- **Update both**: the diff *and* the commit message — a refactor often makes an old subject or body stale (wrong helper count, removed function name, deleted test case). Reread every touched message.
+- **Why it's safe here**: no further work has landed on top, so conflict risk is minimal.
+- **Pushed branches**: rewriting a not-yet-merged task branch is fine, but ask the user before force-pushing — they may have linked the old SHA somewhere.
+- **Never**: rewrite `main` or any branch already merged into `main`.
+
+The default rule from step 4 ("do not amend without explicit user request") still holds; a user-driven refactor *is* the explicit request.
+
+The agent cannot run `git rebase -i` interactively in its harness. Use a sequence of `git cherry-pick` + `git commit --amend -m … -m …` calls instead, with a `backup-pre-rewrite` branch as safety net until the user confirms the result.
 
 ### Step 5 — remove from `docs/ISSUES.md`
 
