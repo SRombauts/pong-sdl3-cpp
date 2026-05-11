@@ -14,9 +14,42 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # at the top level so that ctest --test-dir build picks up the tests.
 include(CTest)
 
+include(FetchContent)
+
+# SDL3, doctest, and any other third-party project fetched here may still
+# declare compatibility with CMake versions older than 3.5, which CMake 4
+# rejects by default. Set the minimum policy version once for every
+# FetchContent sub-project to keep the configure step working on CMake 4+.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
+# ----------------------------------------------------------------------------
+# SDL3 (runtime dependency of the main executable)
+# ----------------------------------------------------------------------------
+# Link mode: shared. This matches SDL3's upstream default and is the mode
+# most pre-built distributions ship. On Windows it produces SDL3.dll, which
+# we copy next to the executable in a POST_BUILD step further down.
+set(SDL_SHARED ON CACHE BOOL "" FORCE)
+set(SDL_STATIC OFF CACHE BOOL "" FORCE)
+# We don't need SDL's test programs, examples, or install rules.
+set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
+set(SDL_TESTS OFF CACHE BOOL "" FORCE)
+set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
+set(SDL_UNINSTALL OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    SDL3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.2.30
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(SDL3)
+
 add_executable(pong-sdl3-cpp
     src/main.cpp
 )
+
+target_link_libraries(pong-sdl3-cpp PRIVATE SDL3::SDL3)
 
 if(MSVC)
     target_compile_options(pong-sdl3-cpp PRIVATE /W4 /permissive-)
@@ -24,15 +57,20 @@ else()
     target_compile_options(pong-sdl3-cpp PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+# With SDL_SHARED=ON, Windows builds produce SDL3.dll. Copy it next to the
+# executable after every build so the program can be launched from the
+# build tree without manually adjusting PATH. On Linux/macOS the loader
+# finds libSDL3.so / libSDL3.dylib through CMake's RPATH handling.
+if(WIN32)
+    add_custom_command(TARGET pong-sdl3-cpp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SDL3::SDL3>
+            $<TARGET_FILE_DIR:pong-sdl3-cpp>
+        VERBATIM
+    )
+endif()
+
 if(BUILD_TESTING)
-    include(FetchContent)
-
-    # doctest v2.4.11 still declares compatibility with CMake versions
-    # older than 3.5. CMake 4 rejects that by default, so provide the
-    # minimum policy version expected by modern CMake before adding the
-    # third-party project through FetchContent.
-    set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
-
     # Keep doctest lean: do not build its own tests/examples and do not
     # install it. These cache vars must be set before MakeAvailable so the
     # doctest sub-project picks them up.

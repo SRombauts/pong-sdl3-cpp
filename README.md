@@ -86,7 +86,7 @@ A small dead-zone is applied to resting sticks.
 
 ## Build
 
-This project uses CMake. SDL3 and the unit-test framework (`doctest`) are acquired through CMake `FetchContent` from pinned upstream tags, so no separate package manager or system-wide install is required for them. SDL3 is introduced in the second milestone; until then the runtime executable itself is dependency-free, although `doctest` is already fetched as a build-time dependency for the test target.
+This project uses CMake. SDL3 and the unit-test framework (`doctest`) are acquired through CMake `FetchContent` from pinned upstream tags, so no separate package manager or system-wide install is required for them. SDL3 is linked as a shared library (`SDL3.dll` on Windows, `libSDL3.so` on Linux, `libSDL3.dylib` on macOS); on Windows the DLL is copied next to the executable in a post-build step so the program can be launched from the build tree without manually adjusting `PATH`.
 
 The repository ships with thin build scripts that wrap CMake. They produce an out-of-source build under `build/` and default to a Debug configuration.
 
@@ -214,9 +214,20 @@ These are validated by the per-milestone manual smoke tests called out in [`docs
 - C++20 compiler.
 - CMake 3.24 or newer.
 - Network access at first configure time, so CMake can fetch SDL3 and `doctest` via `FetchContent`.
-- On Linux, SDL3's transitive system dev-headers (X11/Wayland/OpenGL/EGL/PulseAudio/ALSA) so SDL3 can build from source. On Windows with MSVC, no extra packages are required. On macOS, the Xcode Command Line Tools provide Apple Clang; SDL3 uses the system Cocoa/Metal/CoreAudio frameworks, so no additional packages are required either.
+- On Linux, SDL3's transitive system dev-headers so SDL3 can build from source. The CI Ubuntu runner installs the following packages, which is also the recommended list for local builds on Debian/Ubuntu:
+  - `libx11-dev`
+  - `libxext-dev`
+  - `libxrandr-dev`
+  - `libwayland-dev`
+  - `libxkbcommon-dev`
+  - `libegl1-mesa-dev`
+  - `libgl1-mesa-dev`
+  - `libpulse-dev`
+  - `libasound2-dev`
+- On Windows with MSVC, no extra packages are required.
+- On macOS, the Xcode Command Line Tools provide Apple Clang; SDL3 uses the system Cocoa/Metal/CoreAudio frameworks, so no additional packages are required either.
 
-SDL3 is consumed through the standard `SDL3::SDL3` CMake target.
+SDL3 is pinned to the `release-3.2.30` tag in `CMakeLists.txt` and consumed through the standard `SDL3::SDL3` CMake target.
 
 ## Suggested GitHub topics
 

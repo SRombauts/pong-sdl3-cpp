@@ -30,11 +30,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install SDL3 transitive dev-headers (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libx11-dev \
+            libxext-dev \
+            libxrandr-dev \
+            libwayland-dev \
+            libxkbcommon-dev \
+            libegl1-mesa-dev \
+            libgl1-mesa-dev \
+            libpulse-dev \
+            libasound2-dev
+
       - name: Cache FetchContent dependencies
         uses: actions/cache@v4
         with:
           path: build/_deps
-          key: ${{ runner.os }}-fetchcontent-doctest-v2.4.11
+          key: ${{ runner.os }}-fetchcontent-sdl3-release-3.2.30-doctest-v2.4.11
 
       - name: Configure
         run: cmake -S . -B build
