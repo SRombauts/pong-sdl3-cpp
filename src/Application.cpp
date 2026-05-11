@@ -31,9 +31,20 @@ Application::~Application()
     }
 }
 
+static void logSDLVersion()
+{
+    const int version = SDL_GetVersion();
+    const int major = SDL_VERSIONNUM_MAJOR(version);
+    const int minor = SDL_VERSIONNUM_MINOR(version);
+    const int micro = SDL_VERSIONNUM_MICRO(version);
+    std::cout << "SDL3 runtime version: " << major << "." << minor << "." << micro << std::endl;
+}
+
 bool Application::init()
 {
     std::cout << "Application::init() title='" << m_title << "' size=" << m_width << "x" << m_height << std::endl;
+
+    logSDLVersion();
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -82,6 +93,14 @@ int Application::run()
 {
     std::cout << "Application::run() entering main loop" << std::endl;
 
+    // Per-frame timing: SDL_GetTicksNS is a monotonic nanosecond counter,
+    // safe across the typical game-session length (overflow at ~584 years).
+    // We seed it just before the loop so the very first dt is the tiny gap
+    // between this call and the next one, not the entire startup duration.
+    // The conversion ns -> seconds is currently inline; it will move into a
+    // tested helper alongside the Clock abstraction in a follow-up issue.
+    Uint64 lastTickNs = SDL_GetTicksNS();
+
     bool running = true;
     while (running)
     {
@@ -98,11 +117,25 @@ int Application::run()
             }
         }
 
+        const Uint64 nowNs = SDL_GetTicksNS();
+        const Uint64 deltaNs = nowNs - lastTickNs;
+        lastTickNs = nowNs;
+        const double dtSeconds = static_cast<double>(deltaNs) / 1.0e9;
+
+        update(dtSeconds);
         render();
     }
 
     std::cout << "Application::run() exiting main loop" << std::endl;
     return 0;
+}
+
+void Application::update(double dtSeconds)
+{
+    // Gameplay state updates will land here in subsequent milestones. The
+    // dt is already wired through so future code can consume it without
+    // touching the main loop.
+    (void)dtSeconds;
 }
 
 void Application::render()

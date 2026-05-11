@@ -30,6 +30,7 @@ public:
     int run();
 
 private:
+    void update(double dtSeconds);
     void render();
 
     std::string m_title;
