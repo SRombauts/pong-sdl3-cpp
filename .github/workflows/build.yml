@@ -17,7 +17,7 @@ jobs:
         run: clang-format --version
 
       - name: Verify formatting
-        run: clang-format --dry-run --Werror src/main.cpp tests/*.cpp
+        run: clang-format --dry-run --Werror src/*.cpp src/*.h tests/*.cpp
 
   build:
     name: ${{ matrix.os }}
