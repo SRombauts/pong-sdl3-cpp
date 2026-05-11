@@ -30,6 +30,7 @@ public:
     int run();
 
 private:
+    bool pollEvents();
     void update(double dtSeconds);
     void render();
 

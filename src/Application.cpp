@@ -93,6 +93,12 @@ int Application::run()
 {
     std::cout << "Application::run() entering main loop" << std::endl;
 
+    // Frame pacing: when V-Sync was enabled in init(), SDL_RenderPresent
+    // blocks until vblank and the loop is naturally capped at the display
+    // refresh rate. When V-Sync is unavailable we currently run uncapped
+    // (the manual SDL_DelayNS fallback the issue suggests is deliberately
+    // skipped -- see the comment in init() for the rationale).
+    //
     // Per-frame timing: SDL_GetTicksNS is a monotonic nanosecond counter,
     // safe across the typical game-session length (overflow at ~584 years).
     // We seed it just before the loop so the very first dt is the tiny gap
@@ -101,22 +107,8 @@ int Application::run()
     // tested helper alongside the Clock abstraction in a follow-up issue.
     Uint64 lastTickNs = SDL_GetTicksNS();
 
-    bool running = true;
-    while (running)
+    while (pollEvents())
     {
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_EVENT_QUIT)
-            {
-                running = false;
-            }
-            else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)
-            {
-                running = false;
-            }
-        }
-
         const Uint64 nowNs = SDL_GetTicksNS();
         const Uint64 deltaNs = nowNs - lastTickNs;
         lastTickNs = nowNs;
@@ -128,6 +120,30 @@ int Application::run()
 
     std::cout << "Application::run() exiting main loop" << std::endl;
     return 0;
+}
+
+bool Application::pollEvents()
+{
+    // Pump pending SDL events. Returns false on the first quit signal
+    // (window close or Escape) without finishing the drain -- the loop
+    // is exiting anyway so unread events would be discarded by SDL_Quit
+    // shortly. Returns true once the queue is empty.
+    //
+    // Future input handling (paddle controls, menu navigation) will
+    // route through here without changing the call site in run().
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        if (event.type == SDL_EVENT_QUIT)
+        {
+            return false;
+        }
+        else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 void Application::update(double dtSeconds)
