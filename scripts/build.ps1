@@ -28,8 +28,15 @@
 .PARAMETER ConfigureOnly
     Only run the CMake configure step, skip the build step.
 
+.PARAMETER Reconfigure
+    Force the CMake configure step to run even when the build directory is
+    already configured. The configure step is otherwise skipped automatically
+    when a CMakeCache.txt already exists; CMake's generated build files will
+    still re-run configure on their own if any CMakeLists.txt changes.
+
 .PARAMETER ExtraArgs
-    Extra arguments forwarded to the CMake configure step.
+    Extra arguments forwarded to the CMake configure step. Passing extra
+    arguments implies -Reconfigure since they may change cache variables.
 
 .EXAMPLE
     scripts\build.ps1
@@ -42,6 +49,9 @@
 
 .EXAMPLE
     scripts\build.ps1 -Clean
+
+.EXAMPLE
+    scripts\build.ps1 -Reconfigure
 #>
 
 [CmdletBinding()]
@@ -59,6 +69,8 @@ param(
     [switch]$Clean,
 
     [switch]$ConfigureOnly,
+
+    [switch]$Reconfigure,
 
     [string[]]$ExtraArgs
 )
@@ -117,38 +129,54 @@ if ($Clean -and (Test-Path -LiteralPath $buildPath)) {
     Remove-Item -LiteralPath $buildPath -Recurse -Force
 }
 
-if (-not $Generator) {
-    $Generator = Get-DefaultVisualStudioGenerator
+$cmakeCache = Join-Path $buildPath 'CMakeCache.txt'
+$alreadyConfigured = Test-Path -LiteralPath $cmakeCache
+
+# Extra arguments may change cache variables, so always re-run configure when
+# they are supplied.
+$forceConfigure = $Reconfigure.IsPresent -or ($ExtraArgs -and $ExtraArgs.Count -gt 0)
+$shouldConfigure = $ConfigureOnly.IsPresent -or -not $alreadyConfigured -or $forceConfigure
+
+if ($shouldConfigure) {
     if (-not $Generator) {
-        Write-Warning 'No Visual Studio installation detected. Falling back to the CMake default generator.'
+        $Generator = Get-DefaultVisualStudioGenerator
+        if (-not $Generator) {
+            Write-Warning 'No Visual Studio installation detected. Falling back to the CMake default generator.'
+        }
     }
-}
 
-$configureArgs = @('-S', $repoRoot, '-B', $buildPath)
+    $configureArgs = @('-S', $repoRoot, '-B', $buildPath)
 
-if ($Generator) {
-    $configureArgs += @('-G', $Generator)
-    if ($Generator -like 'Visual Studio*') {
-        $configureArgs += @('-A', $Arch)
+    if ($Generator) {
+        $configureArgs += @('-G', $Generator)
+        if ($Generator -like 'Visual Studio*') {
+            $configureArgs += @('-A', $Arch)
+        } else {
+            $configureArgs += "-DCMAKE_BUILD_TYPE=$Config"
+        }
     } else {
         $configureArgs += "-DCMAKE_BUILD_TYPE=$Config"
     }
+
+    if ($ExtraArgs) {
+        $configureArgs += $ExtraArgs
+    }
+
+    Write-Host "Repository root : $repoRoot"
+    Write-Host "Build directory : $buildPath"
+    Write-Host "Configuration   : $Config"
+    if ($Generator) { Write-Host "Generator       : $Generator" }
+    if ($Generator -like 'Visual Studio*') { Write-Host "Architecture    : $Arch" }
+    Write-Host ''
+
+    Invoke-Native cmake @configureArgs
 } else {
-    $configureArgs += "-DCMAKE_BUILD_TYPE=$Config"
+    Write-Host "Repository root : $repoRoot"
+    Write-Host "Build directory : $buildPath"
+    Write-Host "Configuration   : $Config"
+    Write-Host ''
+    Write-Host "Skipping CMake configure: $cmakeCache already exists. Use -Reconfigure or -Clean to force." -ForegroundColor DarkGray
 }
-
-if ($ExtraArgs) {
-    $configureArgs += $ExtraArgs
-}
-
-Write-Host "Repository root : $repoRoot"
-Write-Host "Build directory : $buildPath"
-Write-Host "Configuration   : $Config"
-if ($Generator) { Write-Host "Generator       : $Generator" }
-if ($Generator -like 'Visual Studio*') { Write-Host "Architecture    : $Arch" }
-Write-Host ''
-
-Invoke-Native cmake @configureArgs
 
 if ($ConfigureOnly) {
     Write-Host 'Configure complete. Skipping build (-ConfigureOnly).' -ForegroundColor Green
