@@ -64,6 +64,10 @@ Before committing, re-read the diff with these checks:
 - Do not amend or force-push without explicit user request.
 - Pushing happens in step 6, not here. Keep commits local until the task is complete.
 
+**Do not sprinkle issue references in commit messages.** The branch name already encodes the issue number (`feature/<taskid>-…`) and the PR description carries the formal `Closes #<taskid>`. Boilerplate like `Refs #11.` or `For #11:` at the start of every commit body is pure noise — it makes individual commits read as bureaucratic instead of natural, and it duplicates information that lives one click away. Save explicit issue links for the PR description and, very occasionally, for a single commit whose subject genuinely needs the context to be understood standalone.
+
+**Bodies are optional, not the default.** Most commits in this repo are subject-only (see `git log --oneline -20` on `main`). Add a body only when the change has a non-obvious *why* that the subject cannot carry: an architectural trade-off, a deliberate deviation from a spec, a subtle behaviour change, or a foot-gun a future reader could miss. If a body is added, keep it tight (a short paragraph is plenty); long expository bodies belong in the PR description.
+
 **Multi-line commit messages and shell portability.** Single-line subjects work the same everywhere: `git commit -m "Subject."`. For a subject + body, do not rely on bash heredocs (`git commit -m "$(cat <<'EOF' ... EOF)"`): they are a parse error on Windows PowerShell, which is the default shell for this repo's contributors. Use one of these instead:
 
 - Cross-shell, recommended: write the message to a file and pass it with `-F`. The git directory is a convenient scratch location that never gets committed:
