@@ -4,10 +4,8 @@
 
 #include <cstdint>
 
-// TDD red: these TEST_CASEs are committed before the real bodies in
-// src/FrameTiming.cpp exist (the cpp file is currently stubbed with
-// deliberately-wrong return values). The follow-up commit on this branch
-// implements the helpers and turns this whole file green.
+// Written test-first: an earlier commit shipped these against a wrong
+// stub, the next commit replaced it. See the red/green pair in git log.
 
 TEST_CASE("secondsBetween: equal timestamps yield zero")
 {

@@ -12,15 +12,15 @@
 class IClock
 {
 public:
+    IClock() = default;
     virtual ~IClock() = default;
 
-    // Monotonic nanosecond timestamp. FrameTiming::secondsBetween()
-    // defends against the degenerate non-monotonic case.
-    virtual std::uint64_t now() const = 0;
-
-    IClock() = default;
     IClock(const IClock&) = delete;
     IClock& operator=(const IClock&) = delete;
     IClock(IClock&&) = delete;
     IClock& operator=(IClock&&) = delete;
+
+    // Monotonic nanosecond timestamp. FrameTiming::secondsBetween()
+    // defends against the degenerate non-monotonic case.
+    virtual std::uint64_t now() const = 0;
 };
