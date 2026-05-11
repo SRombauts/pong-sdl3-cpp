@@ -16,38 +16,6 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 ## Milestone: SDL3 window and game loop
 
-### Integrate SDL3 via `FetchContent` and link the executable
-
-**Labels:** `build`, `ci`, `sdl3`
-
-#### Description
-
-Acquire SDL3 through CMake `FetchContent` (pinned to a release tag), reusing the same mechanism that was introduced for `doctest` in the previous milestone. Link the `pong-sdl3-cpp` executable against `SDL3::SDL3` and update CI so the Linux job has the system dev-headers needed to build SDL3 from source. This issue does not introduce any windowing or rendering code: it only proves the dependency can be acquired and linked on every supported platform (Windows MSVC, Ubuntu GCC or Clang, and macOS Apple Clang).
-
-#### Tasks
-
-- [ ] In `CMakeLists.txt`, declare `FetchContent_Declare(SDL3 GIT_REPOSITORY https://github.com/libsdl-org/SDL.git GIT_TAG <latest stable release-3.x.x tag>)` and call `FetchContent_MakeAvailable(SDL3)`. Pin to a specific release tag, never `main`.
-- [ ] Pick a link mode by setting `SDL_SHARED`/`SDL_STATIC` cache variables before `FetchContent_MakeAvailable`. Suggested default: `SDL_SHARED=ON` (matches SDL3's upstream default; on Windows, copy `SDL3.dll` next to the executable via a CMake `add_custom_command(... POST_BUILD ...)`). Document the chosen mode.
-- [ ] Link the `pong-sdl3-cpp` target against `SDL3::SDL3`.
-- [ ] In `src/main.cpp`, include `<SDL3/SDL.h>` and call `SDL_GetVersion()` once on startup, printing the version. This proves linking works without exercising any subsystem.
-- [ ] In `.github/workflows/build.yml`, on the Ubuntu runner, install the SDL3 transitive dev-headers before configuring CMake: `libx11-dev libxext-dev libxrandr-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libgl1-mesa-dev libpulse-dev libasound2-dev`. Windows MSVC needs no extra packages. macOS needs no extra packages either: the Xcode Command Line Tools provide Apple Clang and SDL3 uses the system Cocoa/Metal/CoreAudio frameworks.
-- [ ] Add a CMake cache (or step) so SDL3 sources fetched into `build/_deps/` are cached in CI keyed on the SDL3 tag, to avoid recompiling SDL3 on every run.
-- [ ] Verify the `Dependencies` section of `README.md` matches the dev-header list installed in CI, and update if needed.
-
-#### Acceptance criteria
-
-- `cmake -S . -B build && cmake --build build` succeeds on Windows MSVC, on Ubuntu (GCC or Clang), and on macOS (Apple Clang).
-- The resulting `pong-sdl3-cpp` executable starts, prints the SDL3 version to stdout, and exits with code 0.
-- All three CI jobs (Windows, Ubuntu, macOS) are green; build logs show SDL3 being fetched and built once, then cached.
-- `ctest --output-on-failure` still passes (the smoke test is unaffected).
-- The SDL3 version is pinned to a specific release tag in `CMakeLists.txt`.
-
-#### Notes
-
-- The exact SDL3 tag should be agreed in the PR. As of writing, the latest is in the `release-3.2.x` series.
-
----
-
 ### Implement the SDL3 main loop inside an `Application` class
 
 **Labels:** `sdl3`, `app`
