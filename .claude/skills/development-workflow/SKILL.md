@@ -3,29 +3,30 @@ name: development-workflow
 description: >-
   Standard end-to-end workflow for working on a task in this repository:
   branch naming, implement + tests + style, self-review, commit,
-  `docs/ISSUES.md` cleanup, push, and PR draft.
-  Use when starting work on a numbered task from a GitHub issue.
+  `docs/ISSUES.md` cleanup, then hand off to the user with a PR draft.
+  Use when starting work on an entry from `docs/ISSUES.md` (or, when one is filed, a GitHub issue).
 ---
 
 # Development Workflow
 
 When working on a task, follow these steps in order:
 
-1. create and switch to a branch with the following pattern `feature/<taskid>-<task-name>`
+1. create and switch to a branch with the following pattern `feature/<task-name>` (or `feature/<taskid>-<task-name>` when a GitHub issue has been filed — see step 1 for details)
 2. implement the features, corresponding tests, check build & style
 3. take a step back to review carefully the changes: are they complete & accurate? Is this really the best solution possible?
 4. make a commit with a short description
 5. remove the task from the `docs/ISSUES.md`
-6. once the task is supposedly complete, push the branch to the remote
-7. draft a PR title and description
+6. hand off to the user: draft a PR title and description, and let the user push the branch + open the PR
+
+**The agent never pushes and never opens PRs.** The execution environment does not have write credentials to the remote, so `git push`, `gh pr create`, and any equivalent are out of scope for the agent. The agent's work ends at a local branch with all task commits applied and a PR draft presented in chat; everything from `git push` onward is the user's job.
 
 ## Scope rule (read first)
 
-A "task" is one filed GitHub issue (or one entry in `docs/ISSUES.md`), not one commit. **One task = one branch.**
+A "task" is one entry in `docs/ISSUES.md` (or, when one is filed, one GitHub issue), not one commit. **One task = one branch.**
 
 Any new requirement that falls within the scope of the current task — supporting changes asked for mid-implementation, additional acceptance criteria, polish, follow-up cleanup, or related tooling — stays on the **same** task branch as additional commits. Do **not** create a new branch for it: skip step 1 and restart from step 2.
 
-Only create a new branch (back to step 1) when the work is genuinely a new task: a different filed issue, or a separate concern that does not belong under the current task's scope.
+Only create a new branch (back to step 1) when the work is genuinely a new task: a different `docs/ISSUES.md` entry (or filed issue), or a separate concern that does not belong under the current task's scope.
 
 When in doubt, ask the user before creating a new branch.
 
@@ -35,9 +36,10 @@ These anchors operationalize the steps above without changing them.
 
 ### Step 1 — branch
 
-- `<taskid>` is the GitHub issue number (e.g. `1`, `12`); `<task-name>` is a short kebab-case slug derived from the issue title.
+- The default branch pattern is `feature/<task-name>`, where `<task-name>` is a short kebab-case slug derived from the `docs/ISSUES.md` entry title (or the GitHub issue title, when one exists).
+- If — and only if — a GitHub issue has been filed for the task, prefix the slug with its number: `feature/<taskid>-<task-name>` (e.g. `feature/12-extract-production-source-list`). Issues are no longer routinely filed on GitHub for this repo; tasks normally live only in `docs/ISSUES.md`, so most new branches will use the unprefixed form.
+- For repo-maintenance work that does not correspond to any `docs/ISSUES.md` entry (e.g. authoring a new agent skill from scratch, fixing a stray typo), use `chore/<task-name>` instead.
 - Always branch from an up-to-date `main` and never commit directly to `main`.
-- For tasks without a filed issue (rare; e.g. authoring a new agent skill from scratch), prefer filing the issue first. If that is not appropriate, fall back to a `chore/<task-name>` branch.
 
 ### Step 2 — implement, test, style
 
@@ -61,10 +63,10 @@ Before committing, re-read the diff with these checks:
 - Stage only the files that belong to the task.
 - Write a short, imperative commit description (one line is usually enough). Match the style of recent commits (`git log --oneline`).
 - Multiple commits per task are fine — one task = one branch, not one commit. Each commit should be a coherent, reviewable slice of the task.
-- Do not amend or force-push without explicit user request.
-- Pushing happens in step 6, not here. Keep commits local until the task is complete.
+- Do not amend without explicit user request.
+- Commits are the end of the agent's git-write surface: never `git push`, never `git push --force-with-lease`, never any other write to the remote. The user owns step 6 onward.
 
-**Do not sprinkle issue references in commit messages.** The branch name already encodes the issue number (`feature/<taskid>-…`) and the PR description carries the formal `Closes #<taskid>`. Boilerplate like `Refs #11.` or `For #11:` at the start of every commit body is pure noise — it makes individual commits read as bureaucratic instead of natural, and it duplicates information that lives one click away. Save explicit issue links for the PR description and, very occasionally, for a single commit whose subject genuinely needs the context to be understood standalone.
+**Do not sprinkle issue references in commit messages.** When a GitHub issue exists, the branch name already encodes the number (`feature/<taskid>-…`) and the PR description carries the formal `Closes #<taskid>`. When the task lives only in `docs/ISSUES.md`, there is no number to reference at all. Boilerplate like `Refs #11.` or `For #11:` at the start of every commit body is pure noise — it makes individual commits read as bureaucratic instead of natural, and it duplicates information that already lives one click away. Save explicit issue links for the PR description and, very occasionally, for a single commit whose subject genuinely needs the context to be understood standalone.
 
 **Bodies are optional, not the default.** Most commits in this repo are subject-only (see `git log --oneline -20` on `main`). Add a body only when the change has a non-obvious *why* that the subject cannot carry: an architectural trade-off, a deliberate deviation from a spec, a subtle behaviour change, or a foot-gun a future reader could miss. If a body is added, keep it tight (a short paragraph is plenty); long expository bodies belong in the PR description.
 
@@ -91,28 +93,25 @@ Do this only once the task as a whole is complete (all required scope has landed
 - If the milestone heading still has remaining entries, leave it; if it is now empty, leave the heading and update the milestone preamble note (the `> The following deliverables…` line) to reflect what is now done.
 - The cleanup may go in the final implementation commit or in a small dedicated follow-up commit on the same branch.
 
-### Step 6 — push the branch
+### Step 6 — hand off to the user (PR draft, no push)
 
-Once the task is supposedly complete (all scope landed, build green, tests passing, `docs/ISSUES.md` cleaned up), push the branch to the remote so it is ready for review.
+The agent never pushes the branch and never opens the PR; both are the user's job. Once the task is supposedly complete (all scope landed, build green, tests passing, `docs/ISSUES.md` cleaned up), the agent stops here and presents a hand-off in chat. If the build, tests, or self-review revealed unfinished work, go back to step 2 instead.
 
-- Push the current branch with upstream tracking on first push: `git push -u origin HEAD`.
-- On subsequent pushes for the same branch, a plain `git push` is enough.
-- Never force-push without explicit user request. If the remote rejects a push because of diverged history, stop and ask the user before rewriting history.
-- If the build, tests, or self-review revealed unfinished work, go back to step 2 instead of pushing.
+Hand-off contents:
 
-### Step 7 — draft a PR title and description
+- **Branch summary**: the local branch name and `git log --oneline main..HEAD` so the user knows exactly what is staged for review.
+- **Verification done**: which build / test / format commands ran and what they returned (one line each is plenty).
+- **PR draft** (the user will paste this into `git push -u origin HEAD` + `gh pr create`, or the GitHub web UI):
+  - **Title**: short and imperative, matching the style of recent commits / PRs. Prefix with the issue number only when a GitHub issue has been filed (e.g. `#12 Add paddle input handling`); when the task lives only in `docs/ISSUES.md`, omit the prefix entirely (e.g. `Inject a Clock abstraction into Application`).
+  - **Description**:
+    - A one- or two-sentence summary of what the change does and why.
+    - A `Closes #<taskid>` (or `Refs #<taskid>`) line **only when a GitHub issue exists**. For docs-only tasks, drop this line and instead reference the `docs/ISSUES.md` entry by its heading title in the summary.
+    - A short bullet list of the main changes (features, tests, docs).
+    - Any noteworthy trade-offs, follow-ups, or things explicitly out of scope.
+    - Test evidence: which build/test commands were run and their outcome.
 
-After pushing, draft a pull request title and description for the user to review. Do not open the PR automatically unless the user asks for it.
-
-- Title: short, imperative, and prefixed with the issue number when available, e.g. `#12 Add paddle input handling`. Match the style of recent commits / PRs.
-- Description should include:
-  - A one- or two-sentence summary of what the change does and why.
-  - A `Closes #<taskid>` (or `Refs #<taskid>`) line linking the GitHub issue.
-  - A short bullet list of the main changes (features, tests, docs).
-  - Any noteworthy trade-offs, follow-ups, or things explicitly out of scope.
-  - Test evidence: which build/test commands were run and their outcome.
-- Present the draft to the user in chat and wait for confirmation before running `gh pr create` (or equivalent).
+Do not run `git push`, `gh pr create`, `gh pr edit`, `gh pr merge`, or any other remote-write command, even if the user seems to be asking for it: the credentials available to the agent do not authorise the operation, and surfacing a clean draft for the user to act on is faster than retrying failed remote writes.
 
 ## When this skill applies
 
-Apply this workflow for every numbered task in `docs/ISSUES.md` and every filed GitHub issue. For trivial out-of-band fixes (typos, comment-only edits) the branch + commit + ISSUES cleanup + push + PR draft steps still apply, but steps 2 and 3 collapse to a single read-through.
+Apply this workflow for every entry in `docs/ISSUES.md` and every filed GitHub issue. For trivial out-of-band fixes (typos, comment-only edits) the branch + commit + ISSUES cleanup (if applicable) + hand-off steps still apply, but steps 2 and 3 collapse to a single read-through.
