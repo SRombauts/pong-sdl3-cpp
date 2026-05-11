@@ -1,12 +1,17 @@
 #include "Application.h"
 
+#include "FrameTiming.h"
+#include "SdlTicksClock.h"
+
 #include <SDL3/SDL.h>
 
+#include <cstdint>
 #include <iostream>
 #include <utility>
 
-Application::Application(std::string title, int width, int height)
-    : m_title(std::move(title)), m_width(width), m_height(height)
+Application::Application(std::string title, int width, int height, std::unique_ptr<IClock> clock)
+    : m_title(std::move(title)), m_width(width), m_height(height),
+      m_clock(clock ? std::move(clock) : std::make_unique<SdlTicksClock>())
 {
 }
 
@@ -71,12 +76,8 @@ bool Application::init()
     }
     std::cout << "SDL_CreateRenderer OK (driver='" << SDL_GetRendererName(m_renderer) << "')" << std::endl;
 
-    // Try V-Sync. Failure is non-fatal: we deliberately do not add a
-    // manual SDL_DelayNS-based 60 FPS cap as the issue suggests, because
-    // burning CPU on a tight loop without V-Sync is uglier than running
-    // uncapped on a machine that opted out of vsync. Revisit if a future
-    // need (e.g. headless CI, deterministic test runs) requires a bounded
-    // loop without V-Sync.
+    // V-Sync failure is non-fatal: the loop runs uncapped. A manual cap
+    // can land later if a use case (headless CI, broken vsync) demands it.
     if (!SDL_SetRenderVSync(m_renderer, 1))
     {
         std::cerr << "SDL_SetRenderVSync(1) failed (non-fatal, running uncapped): " << SDL_GetError() << std::endl;
@@ -93,26 +94,19 @@ int Application::run()
 {
     std::cout << "Application::run() entering main loop" << std::endl;
 
-    // Frame pacing: when V-Sync was enabled in init(), SDL_RenderPresent
-    // blocks until vblank and the loop is naturally capped at the display
-    // refresh rate. When V-Sync is unavailable we currently run uncapped
-    // (the manual SDL_DelayNS fallback the issue suggests is deliberately
-    // skipped -- see the comment in init() for the rationale).
-    //
-    // Per-frame timing: SDL_GetTicksNS is a monotonic nanosecond counter,
-    // safe across the typical game-session length (overflow at ~584 years).
-    // We seed it just before the loop so the very first dt is the tiny gap
-    // between this call and the next one, not the entire startup duration.
-    // The conversion ns -> seconds is currently inline; it will move into a
-    // tested helper alongside the Clock abstraction in a follow-up issue.
-    Uint64 lastTickNs = SDL_GetTicksNS();
+    // Per-frame timing reads time exclusively through m_clock. In
+    // production that is an SdlTicksClock wrapping SDL_GetTicksNS, a
+    // monotonic nanosecond counter that only overflows after ~584 years;
+    // in tests a FakeClock returns scripted values. Seeding lastTickNs
+    // just before the loop keeps the first dt small instead of swallowing
+    // the entire startup duration.
+    std::uint64_t lastTickNs = m_clock->now();
 
     while (pollEvents())
     {
-        const Uint64 nowNs = SDL_GetTicksNS();
-        const Uint64 deltaNs = nowNs - lastTickNs;
-        lastTickNs = nowNs;
-        const double dtSeconds = static_cast<double>(deltaNs) / 1.0e9;
+        const std::uint64_t frameStartNs = m_clock->now();
+        const double dtSeconds = secondsBetween(lastTickNs, frameStartNs);
+        lastTickNs = frameStartNs;
 
         update(dtSeconds);
         render();

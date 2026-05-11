@@ -1,17 +1,21 @@
 #pragma once
 
+#include "Clock.h"
+
+#include <memory>
 #include <string>
 
 struct SDL_Window;
 struct SDL_Renderer;
 
-// Owns the SDL3 lifetime: SDL_Init, the window, the renderer, and (later)
-// the event loop and per-frame timing. `main.cpp` is meant to stay a thin
-// entry point that just instantiates this class.
+// Owns the SDL3 lifetime (init, window, renderer, event loop) and
+// per-frame timing. Reads time through an injected IClock so the frame
+// loop can be exercised with a FakeClock in tests, without SDL video.
+// main.cpp stays a thin entry point.
 class Application
 {
 public:
-    Application(std::string title, int width, int height);
+    Application(std::string title, int width, int height, std::unique_ptr<IClock> clock = nullptr);
     ~Application();
 
     Application(const Application&) = delete;
@@ -41,4 +45,6 @@ private:
     bool m_sdlInitialised = false;
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
+
+    std::unique_ptr<IClock> m_clock;
 };
