@@ -16,43 +16,6 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 ## Milestone: SDL3 window and game loop
 
-### Implement the SDL3 main loop inside an `Application` class
-
-**Labels:** `sdl3`, `app`
-
-**Depends on:** _Integrate SDL3 via FetchContent and link the executable_
-
-#### Description
-
-Build the SDL3 application around an `Application` class that owns the entire SDL3 lifetime: initialization, the window, the renderer, the event loop, and per-frame timing. `main.cpp` stays a thin entry point that instantiates the class and forwards its exit code, so subsequent milestones extend the class rather than touching `main.cpp` directly.
-
-#### Tasks
-
-- [ ] Add `src/Application.h` and `src/Application.cpp` defining a class `Application` with: a constructor taking a window title and size, a public `run()` returning an exit code, and (private) `init()`, `pollEvents()`, `update(double dtSeconds)`, `render()`, and `shutdown()` helpers.
-- [ ] In `init()`, call `SDL_Init(SDL_INIT_VIDEO)`, create an `SDL_Window` (e.g. 800×600, resizable, titled `Pong SDL3 C++`), and create an `SDL_Renderer` for it. Request V-Sync via `SDL_SetRenderVSync(renderer, 1)`; if it fails, fall back to a manual 60 FPS cap using `SDL_DelayNS`.
-- [ ] In `run()`, drive the main loop: poll events; exit cleanly on `SDL_EVENT_QUIT` and on `SDL_EVENT_KEY_DOWN` with `SDLK_ESCAPE` (placeholder until the menus milestone); compute a per-frame `dtSeconds` from `SDL_GetTicksNS` (or `SDL_GetPerformanceCounter`); call `update(dtSeconds)`, then `render()`.
-- [ ] In `render()`, clear to black with `SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255)` + `SDL_RenderClear`, then `SDL_RenderPresent`.
-- [ ] In `shutdown()` (or the destructor), destroy the renderer and the window in the right order, then call `SDL_Quit`. The destructor must be safe to call after a failed `init()` (no double-shutdown, no use-after-free on early exit paths).
-- [ ] Reduce `src/main.cpp` to a thin entry point: instantiate `Application`, call `run()`, return its exit code. On any SDL3 failure, the class prints `SDL_GetError()` and `run()` returns a non-zero exit code.
-- [ ] Wire `src/Application.cpp` into the `pong-sdl3-cpp` target in the top-level `CMakeLists.txt`.
-- [ ] Document the V-Sync vs manual-cap behaviour in a short code comment near the frame-timing logic.
-
-#### Acceptance criteria
-
-- Running the executable opens a black window titled `Pong SDL3 C++`.
-- Closing the window or pressing Escape exits the program with code 0.
-- The window survives at least 5 seconds without crashing on Windows, Linux, and macOS.
-- A per-frame `dtSeconds` is computed and passed into `update(double dtSeconds)`, ready to be consumed by gameplay code (even though `update()` is currently empty).
-- `main.cpp` does not contain any direct SDL3 call other than instantiating `Application`.
-- The `Application` class has a clean ownership model: no leaked `SDL_*` resources, no double-shutdown, no use-after-free on early exit paths (verifiable by reading the destructor and `init()` failure paths).
-- CI is still green on Windows, Ubuntu, and macOS; `ctest` still passes (the existing smoke test is unaffected).
-
-#### Notes
-
-- This issue itself adds no unit tests: the `Application` class is almost entirely SDL plumbing, which is excluded from unit tests by the project's [testing strategy](ROADMAP.md#testing-strategy). The two pure helpers it relies on (tick-delta to seconds conversion, manual frame-cap arithmetic) are extracted and unit-tested in the separate _Inject a Clock abstraction…_ issue, which depends on this one.
-
----
-
 ### Extract the production source list into a shared CMake variable
 
 **Labels:** `build`, `tests`, `refactor`
