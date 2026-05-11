@@ -2,6 +2,7 @@
 
 #include "ClockSdlTicks.h"
 #include "FrameTiming.h"
+#include "RandomSourceMt19937.h"
 
 #include <SDL3/SDL.h>
 
@@ -9,9 +10,11 @@
 #include <iostream>
 #include <utility>
 
-Application::Application(std::string title, int width, int height, std::unique_ptr<IClock> clock)
+Application::Application(std::string title, int width, int height, std::unique_ptr<IClock> clock,
+                         std::unique_ptr<IRandomSource> random)
     : m_title(std::move(title)), m_width(width), m_height(height),
-      m_clock(clock ? std::move(clock) : std::make_unique<ClockSdlTicks>())
+      m_clock(clock ? std::move(clock) : std::make_unique<ClockSdlTicks>()),
+      m_random(random ? std::move(random) : std::make_unique<RandomSourceMt19937>(makeNonDeterministicSeed()))
 {
 }
 
