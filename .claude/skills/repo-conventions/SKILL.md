@@ -21,8 +21,9 @@ description: Repository layout and naming conventions. Use to find or place file
 ## Where to put new code
 
 - New domain code (e.g. `Paddle`, `Ball`, `Score`): create `src/<TypeName>.h` and `src/<TypeName>.cpp` directly under `src/`. If an area grows enough to need a folder (several related files), promote it to `src/<area>/` with the same CamelCase rule for individual files.
-- Wire new sources into the existing `pong-sdl3-cpp` target in the top-level `CMakeLists.txt` (or, when an area gets its own folder, `add_subdirectory(src/<area>)` with its own `CMakeLists.txt`).
-- Add the matching test file as `tests/<TypeName>Test.cpp`. Append it to `tests/CMakeLists.txt` so it is compiled into `pong-sdl3-cpp-tests`; `doctest_discover_tests()` will register every `TEST_CASE` automatically.
+- Wire new sources into the **`PONG_SRC` variable** in the top-level `CMakeLists.txt`. Use the existing `${CMAKE_CURRENT_SOURCE_DIR}/src/<TypeName>.cpp` form so the variable can be consumed from `tests/CMakeLists.txt` unchanged. Both `pong-sdl3-cpp` and `pong-sdl3-cpp-tests` read this single list, so adding a file means editing exactly one place. Entry-point sources (`src/main.cpp`, `tests/main.cpp`) stay off the list because each binary supplies its own.
+- Per-target settings (`target_link_libraries`, `target_compile_options`, Windows DLL-copy steps) are intentionally duplicated between the two targets. Keep the two blocks visually parallel so a reviewer can spot drift in one glance; promote to a helper macro only if they grow.
+- Add the matching test file as `tests/<TypeName>Test.cpp`. Append it to `tests/CMakeLists.txt` so it is compiled into `pong-sdl3-cpp-tests`; `doctest_discover_tests()` will register every `TEST_CASE` automatically. Test sources can `#include "<TypeName>.h"` directly because both targets carry `src/` on their include path.
 
 ## Naming
 

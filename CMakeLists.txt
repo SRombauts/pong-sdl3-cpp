@@ -45,11 +45,23 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3)
 
-add_executable(pong-sdl3-cpp
-    src/main.cpp
-    src/Application.cpp
+# Production source list, declared once and consumed by both the shipped
+# executable and the test binary. Adding a new non-entry-point source means
+# editing this list (and nothing else). Absolute paths via
+# CMAKE_CURRENT_SOURCE_DIR let tests/CMakeLists.txt -- which lives one
+# directory deeper -- consume the variable unchanged. `main.cpp` is the only
+# source kept off this list because each binary supplies its own entry point.
+set(PONG_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Application.cpp
 )
 
+add_executable(pong-sdl3-cpp ${PONG_SRC} src/main.cpp)
+
+# Per-target settings for pong-sdl3-cpp and pong-sdl3-cpp-tests are deliberately
+# duplicated (here and in tests/CMakeLists.txt) rather than centralised in a
+# library target -- see issue #12. Keep the two blocks visually similar so a
+# reviewer can spot drift at a glance; promote to a helper macro if they grow.
+target_include_directories(pong-sdl3-cpp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pong-sdl3-cpp PRIVATE SDL3::SDL3)
 
 if(MSVC)
