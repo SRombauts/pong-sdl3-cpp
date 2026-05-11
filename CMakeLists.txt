@@ -53,6 +53,9 @@ FetchContent_MakeAvailable(SDL3)
 # source kept off this list because each binary supplies its own entry point.
 set(PONG_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/FakeClock.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/SdlTicksClock.cpp
 )
 
 add_executable(pong-sdl3-cpp ${PONG_SRC} src/main.cpp)

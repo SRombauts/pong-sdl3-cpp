@@ -3,6 +3,7 @@ add_executable(pong-sdl3-cpp-tests
     main.cpp
     SmokeTest.cpp
     ApplicationTest.cpp
+    FrameTimingTest.cpp
 )
 
 # Per-target settings mirror those on pong-sdl3-cpp in the root CMakeLists.txt --
