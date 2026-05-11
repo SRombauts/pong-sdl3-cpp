@@ -2,6 +2,7 @@
 
 #include "Clock.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -33,6 +34,14 @@ public:
     // be called after a successful init().
     int run();
 
+    // Elapsed seconds since the previous tick; updates the cache.
+    // Public so tests can drive the frame clock with a FakeClock
+    // without bringing up SDL video.
+    //
+    // Precondition: init() seeded the cache, or a test discarded one
+    // call to prime it the same way.
+    [[nodiscard]] double tickFrameClock();
+
 private:
     bool pollEvents();
     void update(double dtSeconds);
@@ -47,4 +56,5 @@ private:
     SDL_Renderer* m_renderer = nullptr;
 
     std::unique_ptr<IClock> m_clock;
+    std::uint64_t m_lastTickNs = 0;
 };

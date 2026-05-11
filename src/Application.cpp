@@ -87,6 +87,10 @@ bool Application::init()
         std::cout << "SDL_SetRenderVSync(1) OK" << std::endl;
     }
 
+    // Seed the cache so the first tickFrameClock() returns a real frame
+    // dt, not the whole pre-init duration.
+    m_lastTickNs = m_clock->now();
+
     return true;
 }
 
@@ -94,26 +98,23 @@ int Application::run()
 {
     std::cout << "Application::run() entering main loop" << std::endl;
 
-    // Per-frame timing reads time exclusively through m_clock. In
-    // production that is an SdlTicksClock wrapping SDL_GetTicksNS, a
-    // monotonic nanosecond counter that only overflows after ~584 years;
-    // in tests a FakeClock returns scripted values. Seeding lastTickNs
-    // just before the loop keeps the first dt small instead of swallowing
-    // the entire startup duration.
-    std::uint64_t lastTickNs = m_clock->now();
-
     while (pollEvents())
     {
-        const std::uint64_t frameStartNs = m_clock->now();
-        const double dtSeconds = secondsBetween(lastTickNs, frameStartNs);
-        lastTickNs = frameStartNs;
-
+        const double dtSeconds = tickFrameClock();
         update(dtSeconds);
         render();
     }
 
     std::cout << "Application::run() exiting main loop" << std::endl;
     return 0;
+}
+
+double Application::tickFrameClock()
+{
+    const std::uint64_t now = m_clock->now();
+    const double dtSeconds = secondsBetween(m_lastTickNs, now);
+    m_lastTickNs = now;
+    return dtSeconds;
 }
 
 bool Application::pollEvents()
