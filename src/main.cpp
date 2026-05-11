@@ -7,8 +7,10 @@ int main()
     std::cout << "Hello, Pong SDL3 C++!" << std::endl;
 
     const int version = SDL_GetVersion();
-    std::cout << "SDL3 runtime version: " << SDL_VERSIONNUM_MAJOR(version) << "."
-              << SDL_VERSIONNUM_MINOR(version) << "." << SDL_VERSIONNUM_MICRO(version) << std::endl;
+    const int major = SDL_VERSIONNUM_MAJOR(version);
+    const int minor = SDL_VERSIONNUM_MINOR(version);
+    const int micro = SDL_VERSIONNUM_MICRO(version);
+    std::cout << "SDL3 runtime version: " << major << "." << minor << "." << micro << std::endl;
 
     return 0;
 }
