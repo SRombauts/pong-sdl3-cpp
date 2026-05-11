@@ -30,4 +30,11 @@ AllowShortLoopsOnASingleLine: false
 # Keep access modifiers flush with the class indent rather than the
 # LLVM default of half-indent, which looks off at IndentWidth: 4.
 AccessModifierOffset: -4
+
+# Pointer/reference alignment: type-centric (`T* p`, `T& r`) rather
+# than LLVM's default variable-centric (`T *p`, `T &r`). The codebase
+# treats pointer-ness as part of the type and keeps the variable name
+# flush; this also matches how the SDL3 forward declarations and
+# member fields read in `src/Application.h`.
+PointerAlignment: Left
 ...
