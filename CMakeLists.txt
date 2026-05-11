@@ -47,6 +47,7 @@ FetchContent_MakeAvailable(SDL3)
 
 add_executable(pong-sdl3-cpp
     src/main.cpp
+    src/Application.cpp
 )
 
 target_link_libraries(pong-sdl3-cpp PRIVATE SDL3::SDL3)
