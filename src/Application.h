@@ -24,7 +24,14 @@ public:
     // been logged and the destructor is still safe to run).
     bool init();
 
+    // Drive the main loop until the user closes the window or presses
+    // Escape. Returns a process exit code (0 on a clean exit). Must only
+    // be called after a successful init().
+    int run();
+
 private:
+    void render();
+
     std::string m_title;
     int m_width = 0;
     int m_height = 0;

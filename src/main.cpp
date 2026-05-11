@@ -20,9 +20,5 @@ int main()
         return 1;
     }
 
-    // Placeholder so the window is visible long enough to verify init().
-    // Replaced by the real event loop in a follow-up commit on this branch.
-    SDL_Delay(2000);
-
-    return 0;
+    return app.run();
 }

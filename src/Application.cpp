@@ -77,3 +77,37 @@ bool Application::init()
 
     return true;
 }
+
+int Application::run()
+{
+    std::cout << "Application::run() entering main loop" << std::endl;
+
+    bool running = true;
+    while (running)
+    {
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_EVENT_QUIT)
+            {
+                running = false;
+            }
+            else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)
+            {
+                running = false;
+            }
+        }
+
+        render();
+    }
+
+    std::cout << "Application::run() exiting main loop" << std::endl;
+    return 0;
+}
+
+void Application::render()
+{
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+    SDL_RenderClear(m_renderer);
+    SDL_RenderPresent(m_renderer);
+}
