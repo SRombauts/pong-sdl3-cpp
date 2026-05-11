@@ -60,6 +60,7 @@ set(PONG_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockFake.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockSdlTicks.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/RandomSourceMt19937.cpp
 )
 set(PONG_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Application.h
