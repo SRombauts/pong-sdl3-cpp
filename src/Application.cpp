@@ -1,7 +1,7 @@
 #include "Application.h"
 
+#include "ClockSdlTicks.h"
 #include "FrameTiming.h"
-#include "SdlTicksClock.h"
 
 #include <SDL3/SDL.h>
 
@@ -11,7 +11,7 @@
 
 Application::Application(std::string title, int width, int height, std::unique_ptr<IClock> clock)
     : m_title(std::move(title)), m_width(width), m_height(height),
-      m_clock(clock ? std::move(clock) : std::make_unique<SdlTicksClock>())
+      m_clock(clock ? std::move(clock) : std::make_unique<ClockSdlTicks>())
 {
 }
 

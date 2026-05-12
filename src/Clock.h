@@ -7,8 +7,8 @@
 // test-doubles surface without earning their keep. Seconds conversion
 // lives in FrameTiming::secondsBetween().
 //
-// Implementations: SdlTicksClock (production, wraps SDL_GetTicksNS),
-// FakeClock (tests, scripted via setNow / advance).
+// Implementations: ClockSdlTicks (production, wraps SDL_GetTicksNS),
+// ClockFake (tests, scripted via setNow / advance).
 class IClock
 {
 public:

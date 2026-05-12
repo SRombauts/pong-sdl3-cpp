@@ -11,7 +11,7 @@ struct SDL_Renderer;
 
 // Owns the SDL3 lifetime (init, window, renderer, event loop) and
 // per-frame timing. Reads time through an injected IClock so the frame
-// loop can be exercised with a FakeClock in tests, without SDL video.
+// loop can be exercised with a ClockFake in tests, without SDL video.
 // main.cpp stays a thin entry point.
 class Application
 {
@@ -35,7 +35,7 @@ public:
     int run();
 
     // Elapsed seconds since the previous tick; updates the cache.
-    // Public so tests can drive the frame clock with a FakeClock
+    // Public so tests can drive the frame clock with a ClockFake
     // without bringing up SDL video.
     //
     // Precondition: init() seeded the cache, or a test discarded one

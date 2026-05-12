@@ -1,6 +1,6 @@
 #include "Application.h"
 
-#include "FakeClock.h"
+#include "ClockFake.h"
 
 #include <doctest/doctest.h>
 
@@ -22,13 +22,13 @@ TEST_CASE("Application constructs and destructs without touching SDL")
 }
 
 // End-to-end coverage of the IClock injection: drive tickFrameClock()
-// through a FakeClock and verify the dt sequence.
+// through a ClockFake and verify the dt sequence.
 TEST_CASE("Application::tickFrameClock drives dtSeconds via the injected IClock")
 {
-    // Application owns the FakeClock through m_clock; keep a raw
+    // Application owns the ClockFake through m_clock; keep a raw
     // observer pointer here to drive it via advance() / setNow().
-    auto clock = std::make_unique<FakeClock>(1'000'000'000ULL);
-    FakeClock* fake = clock.get();
+    auto clock = std::make_unique<ClockFake>(1'000'000'000ULL);
+    ClockFake* fake = clock.get();
     Application app("Pong test", 800, 600, std::move(clock));
 
     // Skip init() (would need SDL video) and prime m_lastTickNs the

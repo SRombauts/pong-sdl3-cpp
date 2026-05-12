@@ -6,12 +6,12 @@
 
 // Test-only IClock returning scripted values. Lives in ${PONG_SRC} so
 // any TEST_CASE can use it without extra CMake plumbing.
-class FakeClock : public IClock
+class ClockFake : public IClock
 {
 public:
-    FakeClock() = default;
-    explicit FakeClock(std::uint64_t initialNs);
-    ~FakeClock() override = default;
+    ClockFake() = default;
+    explicit ClockFake(std::uint64_t initialNs);
+    ~ClockFake() override = default;
 
     std::uint64_t now() const override;
 

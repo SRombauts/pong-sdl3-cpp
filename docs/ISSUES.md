@@ -31,17 +31,17 @@ This issue is pure infrastructure: it adds the abstraction, wires it into `Appli
 #### Tasks
 
 - [ ] Add `src/RandomSource.h` defining a small interface (`IRandomSource`) with the operations gameplay actually needs: `int intInRange(int lo, int hi)` (inclusive bounds) and `double doubleInRange(double lo, double hi)` (half-open `[lo, hi)`). Keep the surface intentionally small; add operations only when a real consumer needs them.
-- [ ] Add `src/Mt19937RandomSource.{h,cpp}` implementing `IRandomSource` over `std::mt19937` with a constructor that takes an explicit `std::uint64_t seed`. Provide a free helper `Mt19937RandomSource makeNonDeterministicRandomSource()` that seeds from `std::random_device` for production use. Append to `PONG_SRC` so both targets pick it up.
-- [ ] Modify `Application` to take an `IRandomSource&` (or owning `std::unique_ptr<IRandomSource>`) via its constructor; default-construct a non-deterministically-seeded `Mt19937RandomSource` for production callers. The reference is exposed to gameplay code via an accessor (e.g. `Application::random()`) for now; the **Ball and collisions** milestone will tighten this when it introduces the serve policy.
+- [ ] Add `src/RandomSourceMt19937.{h,cpp}` implementing `IRandomSource` over `std::mt19937` with a constructor that takes an explicit `std::uint64_t seed`. Provide a free helper `RandomSourceMt19937 makeNonDeterministicRandomSource()` that seeds from `std::random_device` for production use. Append to `PONG_SRC` so both targets pick it up.
+- [ ] Modify `Application` to take an `IRandomSource&` (or owning `std::unique_ptr<IRandomSource>`) via its constructor; default-construct a non-deterministically-seeded `RandomSourceMt19937` for production callers. The reference is exposed to gameplay code via an accessor (e.g. `Application::random()`) for now; the **Ball and collisions** milestone will tighten this when it introduces the serve policy.
 - [ ] Add `tests/RandomSourceTest.cpp` with `TEST_CASE`s verifying:
-  - `Mt19937RandomSource` with seed `S` produces the same sequence on two independent instances (determinism under fixed seed).
+  - `RandomSourceMt19937` with seed `S` produces the same sequence on two independent instances (determinism under fixed seed).
   - `intInRange` respects inclusive bounds across many samples.
   - `doubleInRange` respects half-open bounds across many samples.
   - The non-deterministic helper produces _different_ sequences across two calls (statistical, not strict — acceptable to compare just the first few values).
 
 #### Acceptance criteria
 
-- `IRandomSource`, `Mt19937RandomSource`, and `makeNonDeterministicRandomSource()` are part of `${PONG_SRC}` and therefore available to both the executable and the test binary.
+- `IRandomSource`, `RandomSourceMt19937`, and `makeNonDeterministicRandomSource()` are part of `${PONG_SRC}` and therefore available to both the executable and the test binary.
 - `Application` carries an injected `IRandomSource&` available to subsequent milestones.
 - The shipped executable behaves identically to before (the abstraction has no production consumer yet).
 - The new `tests/RandomSourceTest.cpp` `TEST_CASE`s pass locally and in CI.
