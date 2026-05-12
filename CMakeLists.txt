@@ -45,17 +45,28 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3)
 
-# Production source list, declared once and consumed by both the shipped
-# executable and the test binary. Adding a new non-entry-point source means
-# editing this list (and nothing else). Absolute paths via
-# CMAKE_CURRENT_SOURCE_DIR let tests/CMakeLists.txt -- which lives one
-# directory deeper -- consume the variable unchanged. `main.cpp` is the only
-# source kept off this list because each binary supplies its own entry point.
+# Production source and header lists, declared once and consumed by both the
+# shipped executable and the test binary. Adding a new non-entry-point type
+# means appending its `.cpp` to `PONG_SRC` and its `.h` to `PONG_INC`. Absolute
+# paths via CMAKE_CURRENT_SOURCE_DIR let tests/CMakeLists.txt -- which lives
+# one directory deeper -- consume the variables unchanged. `main.cpp` is the
+# only source kept off these lists because each binary supplies its own entry
+# point. PONG_INC exists separately so IDE generators (Visual Studio, Rider)
+# can list the headers in the solution tree via FILE_SET HEADERS below; CMake
+# itself never compiles `.h` files, so they would otherwise be invisible to
+# anyone browsing the generated project.
 set(PONG_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockFake.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockSdlTicks.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.cpp
+)
+set(PONG_INC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Application.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Clock.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockFake.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockSdlTicks.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.h
 )
 
 add_executable(pong-sdl3-cpp ${PONG_SRC} src/main.cpp)
@@ -66,6 +77,20 @@ add_executable(pong-sdl3-cpp ${PONG_SRC} src/main.cpp)
 # reviewer can spot drift at a glance; promote to a helper macro if they grow.
 target_include_directories(pong-sdl3-cpp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pong-sdl3-cpp PRIVATE SDL3::SDL3)
+
+# FILE_SET HEADERS (CMake 3.23+) attaches headers to the target so IDE
+# generators surface them in the solution tree. BASE_DIRS is set explicitly
+# because the default (CMAKE_CURRENT_SOURCE_DIR) differs between this file
+# and tests/CMakeLists.txt, and every FILES entry must live under one of the
+# declared bases. The set is PRIVATE because this is an end-user executable
+# with no install/export surface; promote to PUBLIC if a future `pong-core`
+# library wants to re-export these headers transitively.
+target_sources(pong-sdl3-cpp
+    PRIVATE
+    FILE_SET pong_headers TYPE HEADERS
+    BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src
+    FILES ${PONG_INC}
+)
 
 if(MSVC)
     target_compile_options(pong-sdl3-cpp PRIVATE /W4 /permissive-)

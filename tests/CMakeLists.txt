@@ -12,6 +12,18 @@ add_executable(pong-sdl3-cpp-tests
 target_include_directories(pong-sdl3-cpp-tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(pong-sdl3-cpp-tests PRIVATE doctest::doctest SDL3::SDL3)
 
+# Mirror the FILE_SET HEADERS attached to pong-sdl3-cpp so the test target's
+# IDE project also lists the production headers next to their .cpp files.
+# BASE_DIRS uses CMAKE_SOURCE_DIR because PONG_INC entries point at <root>/src/
+# which lies outside this directory's default base (CMAKE_CURRENT_SOURCE_DIR
+# is `tests/` here).
+target_sources(pong-sdl3-cpp-tests
+    PRIVATE
+    FILE_SET pong_headers TYPE HEADERS
+    BASE_DIRS ${CMAKE_SOURCE_DIR}/src
+    FILES ${PONG_INC}
+)
+
 if(MSVC)
     target_compile_options(pong-sdl3-cpp-tests PRIVATE /W4 /permissive-)
 else()
