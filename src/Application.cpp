@@ -134,10 +134,12 @@ bool Application::pollEvents()
     {
         if (event.type == SDL_EVENT_QUIT)
         {
+            std::cout << "SDL_EVENT_QUIT received" << std::endl;
             return false;
         }
         else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)
         {
+            std::cout << "SDL_EVENT_KEY_DOWN received" << std::endl;
             return false;
         }
     }
