@@ -82,14 +82,13 @@ Scope:
 - Create a window.
 - Create a renderer.
 - Drive an event loop that handles `SDL_EVENT_QUIT` cleanly.
-- Cap the frame rate (V-Sync when available, otherwise a simple manual cap) and expose a per-frame delta time value for later milestones.
+- Cap the frame rate using V-Sync (via `SDL_SetRenderVSync`) and expose a per-frame delta time value for later milestones. A manual `SDL_DelayNS`-based fallback is intentionally deferred: V-Sync covers the realistic case on every CI platform, the loop runs uncapped on V-Sync failure (logged as non-fatal), and a software cap can be added later if a real use case (headless CI, broken vsync) appears.
 - Clear and present a black frame each tick.
 - Move the production source list into a single CMake variable (e.g. `PONG_SRC`) declared near the top of `CMakeLists.txt`, and pass it to both `add_executable(pong-sdl3-cpp ${PONG_SRC} src/main.cpp)` and `add_executable(pong-sdl3-cpp-tests ${PONG_SRC} ...)` (the latter declared in `tests/CMakeLists.txt`). Adding a new production file then requires editing exactly one place. Per-target settings (SDL3 link, `doctest` link, warning flags) stay on the individual targets; keep the two `target_*` blocks adjacent so divergence is visible to reviewers.
-- Inject a `Clock` abstraction into `Application`: a tiny interface with one virtual `now()` returning a monotonic timestamp. Provide `ClockSdlTicks` (wraps `SDL_GetTicksNS`) as the default and `ClockFake` (returns scripted values) for tests. Move tick-delta-to-seconds conversion and the manual frame-cap arithmetic into pure free functions that take their inputs as parameters, so they have no SDL dependency.
+- Inject a `Clock` abstraction into `Application`: a tiny interface with one virtual `now()` returning a monotonic timestamp. Provide `ClockSdlTicks` (wraps `SDL_GetTicksNS`) as the default and `ClockFake` (returns scripted values) for tests. Move tick-delta-to-seconds conversion into a pure free function that takes its inputs as parameters, so it has no SDL dependency.
 - Inject a seedable `RandomSource` abstraction into `Application` for use by later milestones (serve direction in **Ball and collisions**, AI noise in **One-player AI**). Production seeds it from a non-deterministic source at startup; tests pass a fixed seed. The abstraction is introduced now even without a consumer, to avoid a churn-y retrofit later.
 - Add unit tests for the pure helpers introduced by this milestone (TDD-friendly: write the `TEST_CASE` first):
   - Tick-delta to `dtSeconds` conversion (including the wrap-around / zero-delta edge cases).
-  - Manual frame-cap arithmetic: given a target FPS and the elapsed nanoseconds since the last frame, return the sleep duration to pass to `SDL_DelayNS` (clamped to `0` when the frame already overran).
 
 Acceptance criteria:
 

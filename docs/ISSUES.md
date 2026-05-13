@@ -1,8 +1,6 @@
 # Issues backlog
 
-This file is a staging area for proposed GitHub issues. Each entry below maps to one pull request and is intended to be filed against the matching milestone on GitHub. Once an issue is filed, the corresponding entry can be removed from this file.
-
-This file itself satisfies the _"Define the initial GitHub issue backlog"_ scope item in [`docs/ROADMAP.md`](ROADMAP.md).
+This file is a staging area for highly detailed issues designed from the roadmap. Each entry below maps to one pull request and is intended to be filed against the matching milestone on GitHub. Once an issue has been fully impelmented, the corresponding entry can be removed from this file.
 
 Issues for later milestones will be added to this file in subsequent batches.
 
@@ -16,4 +14,134 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 ## Milestone: SDL3 window and game loop
 
-> All deliverables of this milestone are now implemented in the repository. No backlog entries remain for this milestone.
+> All deliverables of this milestone are now implemented in the repository. The manual `SDL_DelayNS`-based frame-cap fallback originally listed alongside V-Sync was deliberately deferred (see the rationale recorded in `docs/ROADMAP.md`); no backlog entries remain for this milestone.
+
+---
+
+## Milestone: Static playfield
+
+> The following deliverables turn the black SDL3 window into a recognisable Pong layout: a fixed logical resolution with letterboxed scaling, the static playfield elements (paddles, ball, dashed centre line) driven by pure layout helpers, and a placeholder score rendered via a deliberately chosen text-rendering approach that the menus milestone will reuse. Each entry below is intended to map to one pull request.
+
+### Set the logical playfield resolution and document the coordinate convention
+
+#### Description
+
+Pong's gameplay is defined in *logical* pixels, decoupled from the user's window size. SDL3's `SDL_SetRenderLogicalPresentation` lets the renderer keep a fixed aspect ratio and scale the playfield to any window. Pick a logical resolution (start with 800x600 to match the current default window size), wire it through `Application`, and document the coordinate convention so every later gameplay file can rely on a single, stable frame of reference.
+
+This is the smallest unit in the milestone on purpose: it locks in the architectural decision (logical resolution + presentation mode) before any layout or rendering code is added on top.
+
+#### Tasks
+
+- Add `src/Playfield.h` (header-only; `constexpr` is enough) exposing the logical width and height as named constants (e.g. `kLogicalWidth = 800`, `kLogicalHeight = 600`) and a header-level comment describing the coordinate convention:
+  - Origin at the top-left of the playfield.
+  - +X to the right, +Y downward (matches SDL conventions).
+  - All gameplay coordinates and sizes are expressed in logical pixels; the renderer scales them to the window.
+- Call `SDL_SetRenderLogicalPresentation(m_renderer, kLogicalWidth, kLogicalHeight, SDL_LOGICAL_PRESENTATION_LETTERBOX)` once in `Application::init()`, after `SDL_CreateRenderer` succeeds and before `SDL_SetRenderVSync`. Log success or failure following the existing pattern in that function. Pick `LETTERBOX` deliberately: `STRETCH` would distort the playfield aspect ratio and `OVERSCAN` would crop it; record the choice in a short comment next to the call.
+- Append the new header to `PONG_INC` in the top-level `CMakeLists.txt` so it appears in IDE-generator projects (mirrors the existing pattern for the other production headers).
+- Update the `README.md` "Build" or "Roadmap" section to mention the logical resolution and link to `Playfield.h` for the coordinate convention (one short sentence is enough).
+
+#### Acceptance criteria
+
+- The window opens at 800x600 and still presents a black frame each tick (no regression from the previous milestone).
+- Resizing or maximising the window keeps the playfield aspect ratio intact: the playable area stays a 4:3 letterbox, with black bars on the sides or top/bottom when the window aspect differs.
+- `Playfield.h` declares `kLogicalWidth`/`kLogicalHeight` as `constexpr` and documents the coordinate convention at the top of the file.
+- All existing unit tests still pass on Windows, Linux, and macOS; `clang-format --dry-run --Werror` stays clean on the new and edited files.
+
+#### Notes
+
+- No new unit tests are needed: this issue introduces constants plus one SDL call. Manual smoke is "resize the window, observe letterbox bars instead of distortion".
+- Scale modes (linear vs nearest) are intentionally left at SDL's default. Axis-aligned rectangles don't need a specific mode yet; the menus milestone or sprite work can revisit if needed.
+- Choosing `LETTERBOX` over `INTEGER_SCALE` keeps small-window sizes usable; integer scaling can be opted into later if pixel-perfect rendering becomes a requirement.
+
+---
+
+### Add the playfield layout helpers and draw the static paddles, ball, and centre line
+
+#### Description
+
+Introduce the pure layout logic that places the two paddles, the ball, and the dashed centre line inside the playfield, then wire the renderer to draw them. The layout helpers stay free of any SDL include and are unit-tested first (TDD); the renderer is the only consumer that touches SDL.
+
+This issue produces the first frame that visibly resembles Pong.
+
+#### Tasks
+
+- Introduce a minimal SDL-free rectangle type (`struct Rect { float x; float y; float w; float h; };`) in a new header (e.g. `src/Geometry.h`). The pure helpers below return `Rect` values; the renderer converts to `SDL_FRect` at the call site (a one-line copy) so SDL never leaks into the layout layer.
+- Add `src/PlayfieldLayout.{h,cpp}` exposing pure free functions:
+  - `Rect defaultLeftPaddle(int playfieldWidth, int playfieldHeight, float paddleHalfWidth, float paddleHalfHeight, float wallInset)` — centred vertically, inset from the left wall by `wallInset` logical pixels.
+  - `Rect defaultRightPaddle(...)` — mirrored on the right.
+  - `Rect defaultBall(int playfieldWidth, int playfieldHeight, float ballHalfSize)` — centred on both axes.
+  - `std::array<Rect, N> centreDashSegments(int playfieldHeight, int segmentCount, float dashWidth, float dashHeight, float gap)` — or an out-vector if `segmentCount` is configurable. Document the convention clearly: segments are evenly distributed top-to-bottom, the first dash starts at `y = gap/2` (so the dashed line is visually symmetric about the playfield centre), and dashes are horizontally centred on `playfieldWidth/2`.
+- Pick small tunable constants for paddle size, ball size, dash size, wall inset, and segment count. Put them in `Playfield.h` next to the resolution constants so all gameplay tuning lives in one place.
+- Extend `Application::render()` to fill the four shapes plus each dash with white (`SDL_SetRenderDrawColor(..., 255, 255, 255, 255)`), then restore the black clear colour. Keep the call sites short — the math lives in the helpers.
+- Add `tests/PlayfieldLayoutTest.cpp` covering:
+  - Default paddle positions: vertical centring (the paddle's vertical midpoint equals `playfieldHeight / 2`), horizontal inset on both sides, left/right symmetry across the vertical midline.
+  - Default ball position: centred on both axes (within sub-pixel tolerance).
+  - Dashed line — total covered length matches `segmentCount * dashHeight`, gaps respect the documented convention, first and last segment positions are inside the playfield, and the line is centred on `playfieldWidth/2`.
+  - Defensive cases for the dashed line: `segmentCount == 1` returns a single centred dash; `segmentCount == 0` returns an empty range (no crash, no negative dimensions).
+  - A paddle larger than the playfield (defensive, mirrors the future `Paddle controls` milestone's clamping concerns): the helper still returns a usable rect rather than asserting or producing NaN.
+
+#### Acceptance criteria
+
+- The window shows two white static paddles at the left and right walls, a white static ball at the centre, and a vertical dashed white centre line — all at classic Pong positions.
+- `PlayfieldLayout.h` includes no SDL header, and the test target compiles `PlayfieldLayoutTest.cpp` without linking against SDL symbols.
+- All new unit tests pass locally and in CI on Windows, Linux, and macOS.
+- `clang-format --dry-run --Werror` stays clean on all new and edited C++ files.
+- The previous milestone's tests (`secondsBetween`, `RandomSourceMt19937`, `Application` constructor and `tickFrameClock`) still pass unchanged.
+
+#### Notes
+
+- Constants are placeholders; tuning is owned by later milestones (`Paddle controls`, `Ball and collisions`). Resist the urge to bikeshed exact pixel sizes here — any reasonable arcade-style proportions are fine for the static frame.
+- If `std::array` ends up awkward for `centreDashSegments` (because `segmentCount` is a runtime value), prefer `std::vector` and accept the heap allocation — this code runs once per frame at low N and is far from a hot path.
+- Drawing white rectangles is intentionally crude: this milestone is "static playfield", not "polish". Any cosmetic refinement (anti-aliasing, gradients) belongs to the `Audio and polish` milestone.
+
+---
+
+### Pick a text-rendering approach and draw the placeholder score
+
+#### Description
+
+The static playfield is complete except for the score readout. The roadmap explicitly calls out that the same text-rendering approach must serve the **Screens and menus** milestone (Title, Pause, Game Over, mode selection). This issue is the decision point: pick an approach, document the trade-offs in code, and implement it for the placeholder score `0 0` shown above the playfield.
+
+#### Decision: text-rendering approach
+
+Three candidates from the roadmap, with trade-offs surfaced for the decision:
+
+1. **Hand-drawn 7-segment digits**. Simplest: one segment-on/off table for `0..9`, a few `SDL_RenderFillRect` calls. Zero extra dependencies, no asset to ship, trivial to unit-test (one `SUBCASE` per digit). **Limitation**: digits only — menus that need words (`PAUSE`, `GAME OVER`, `1 PLAYER`) would have to be drawn as hand-placed sprites or migrated to a font later, which means this milestone's text stack is thrown away when menus land.
+
+2. **Small hand-drawn bitmap font (3x5 or 5x7 grid of pixels per glyph)**. A `static constexpr` glyph table covering at minimum `0..9`, plus the letters used by the menus milestone (`P`, `A`, `U`, `S`, `E`, `G`, `M`, `O`, `V`, `R`, `1`, `2`, `L`, `Y`, `N`, …). More upfront work than 7-segment, but the resulting renderer is reusable end-to-end and avoids a second text-rendering decision later. Still zero dependencies and no asset to ship.
+
+3. **`SDL3_ttf` with a small bundled TTF font**. Most flexibility, full Unicode and antialiasing. But adds a `FetchContent` dependency, CI dev-headers on Linux (likely `libfreetype-dev`, possibly `libharfbuzz-dev`), a runtime asset path that has to be resolved on three OSes, and a font-licence note in the `README.md`. Heaviest option for an arcade-style game whose menus need a handful of fixed strings.
+
+**Recommendation**: option 2 (small bitmap font). It costs marginally more than option 1 for this milestone and pays back immediately in the menus milestone — no second text stack to ship, no rework. Option 1 is acceptable if the project is willing to revisit text rendering when menus land; option 3 is over-engineering for the scope.
+
+This recommendation is open for revision before the implementation PR — record the final choice in `src/TextRenderer.h` as the source of truth.
+
+#### Tasks
+
+- Add `src/TextRenderer.{h,cpp}` with a header-level comment recording the chosen approach and the rationale (one short paragraph).
+- For **option 2 (recommended)**:
+  - Define a `static constexpr` glyph table for `0..9` plus the alphabet needed by the menus milestone (at minimum the letters that spell `PONG`, `PAUSE`, `GAME OVER`, `1 PLAYER`, `2 PLAYER`, `RESTART`, `QUIT`). One bit per pixel, stored as `uint8_t` rows for a 5x7 glyph or `uint16_t` rows for a 7x9 glyph.
+  - Provide a pure layout function returning the on-pixel rectangles for a string: `std::vector<Rect> textGlyphRects(std::string_view text, float originX, float originY, float pixelSize, float glyphSpacing)`. No SDL include in this translation unit's header.
+  - Provide a thin renderer entry point in `TextRenderer.cpp` that calls `SDL_RenderFillRect` once per returned `Rect`. This is the only SDL-touching function.
+- For **option 1** (if chosen instead), the tasks collapse to: a `static constexpr` segment-on/off table for `0..9`, a pure helper returning the per-segment rectangles for a digit drawn at a given top-left position with a given segment thickness, and the thin SDL renderer.
+- For **option 3** (if chosen instead), additional tasks: pin an `SDL3_ttf` tag in `FetchContent`, update the Ubuntu CI step with the new dev-headers, bundle a permissively-licensed font under `assets/` and document its licence in the `README.md`, resolve the asset path on all three OSes (`SDL_GetBasePath` is the usual answer).
+- Draw `0 0` (a placeholder score) centred horizontally near the top of the playfield (e.g. `y = 24` logical pixels), with the left digit slightly to the left of the centre line and the right digit slightly to the right. Use the same white as the other elements.
+- Append the new sources/headers to `PONG_SRC` / `PONG_INC` in `CMakeLists.txt` and to the test target's source list in `tests/CMakeLists.txt`.
+- Tests under `tests/TextRendererTest.cpp` matching the chosen approach:
+  - Option 1: segment-on/off pattern for each digit `0..9` (one `SUBCASE` per digit, or one parametrised table), per-segment rectangle layout for a digit drawn at a given top-left position.
+  - Option 2: per-glyph pattern for each supported character (a representative subset is fine; cover at least `0`, `9`, `P`, `A`, `space`), and a multi-character layout test asserting that the total width matches `len(text) * (glyphWidth + glyphSpacing) - glyphSpacing` (no trailing spacing) and that shifting the origin shifts every output rect by the same delta.
+  - Option 3: a unit-testable wrapper around glyph-position math (TTF metrics are out of scope) — at minimum verify the centring formula used to place a string in a target rectangle.
+
+#### Acceptance criteria
+
+- The window shows a centred `0 0` placeholder score above the playfield, in the same white as the other static elements, at the documented logical-pixel y-offset.
+- `TextRenderer.h` documents the chosen approach and the rationale. The chosen approach is structurally capable of rendering every menu string listed in the roadmap's `Screens and menus` milestone (at least digits + the menu alphabet) without a second text-rendering stack.
+- All new unit tests pass locally and in CI on Windows, Linux, and macOS.
+- `clang-format --dry-run --Werror` stays clean on the new and edited files.
+- The previous milestones' tests still pass unchanged.
+
+#### Notes
+
+- Whichever option is picked, the SDL boundary is exactly one function (`SDL_RenderFillRect` in option 1/2, `SDL_RenderTexture` in option 3). Keep the boundary thin so the layout math stays unit-testable.
+- The glyph table in option 2 can grow incrementally: ship the digits and the menu alphabet in this PR; later milestones can extend the table as new strings appear, without restructuring the renderer.
+- The placeholder score's exact font size, kerning, and y-offset are tuning knobs, not invariants. Pick reasonable values, leave them as named constants, and move on; `Scoring and match flow` is the milestone that revisits the score visuals once they show real values.
