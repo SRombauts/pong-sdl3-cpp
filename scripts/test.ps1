@@ -72,7 +72,12 @@ if (-not (Test-Path -LiteralPath $buildPath)) {
     exit 1
 }
 
-$ctestArgs = @('--test-dir', $buildPath, '--output-on-failure', '-C', $Config)
+# --no-tests=error turns CTest's silent "No tests were found!!!" exit
+# code 0 into a real failure. Without it, a build directory configured
+# with BUILD_TESTING=OFF or left in a partial state would report
+# "Tests passed" while running zero tests. Listed before $ExtraArgs so
+# a user can still opt out via -ExtraArgs '--no-tests=ignore'.
+$ctestArgs = @('--test-dir', $buildPath, '--output-on-failure', '--no-tests=error', '-C', $Config)
 
 if ($ExtraArgs) {
     $ctestArgs += $ExtraArgs

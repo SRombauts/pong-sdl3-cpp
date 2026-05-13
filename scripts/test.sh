@@ -78,7 +78,12 @@ if [[ ! -d "$build_path" ]]; then
     exit 1
 fi
 
-ctest_args=(--test-dir "$build_path" --output-on-failure -C "$config")
+# --no-tests=error turns CTest's silent "No tests were found!!!" exit
+# code 0 into a real failure. Without it, a build directory configured
+# with BUILD_TESTING=OFF or left in a partial state would report
+# "Tests passed" while running zero tests. Listed before extra_args so
+# a user can still opt out via `-- --no-tests=ignore`.
+ctest_args=(--test-dir "$build_path" --output-on-failure --no-tests=error -C "$config")
 if [[ ${#extra_args[@]} -gt 0 ]]; then
     ctest_args+=("${extra_args[@]}")
 fi
