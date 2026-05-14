@@ -68,6 +68,7 @@ set(PONG_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockFake.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockSdlTicks.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Playfield.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RandomSource.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RandomSourceMt19937.h
 )

@@ -2,6 +2,7 @@
 
 #include "ClockSdlTicks.h"
 #include "FrameTiming.h"
+#include "Playfield.h"
 #include "RandomSourceMt19937.h"
 
 #include <SDL3/SDL.h>
@@ -78,6 +79,23 @@ bool Application::init()
         return false;
     }
     std::cout << "SDL_CreateRenderer OK (driver='" << SDL_GetRendererName(m_renderer) << "')" << std::endl;
+
+    // Fix the gameplay coordinate system to a stable logical resolution and let SDL scale it to the window.
+    // LETTERBOX is picked over STRETCH (which would distort the aspect ratio) and OVERSCAN (which would crop the
+    // playfield); the user keeps the full 4:3 playable area with black bars on the sides or top/bottom when the window
+    // aspect differs. INTEGER_SCALE is deferred until a pixel-perfect rendering need actually appears. Failure here is
+    // non-fatal -- the window still presents, just without the logical mapping -- but every gameplay layout assumes it
+    // succeeded, so surface the error loudly.
+    if (!SDL_SetRenderLogicalPresentation(m_renderer, Playfield::kLogicalWidth, Playfield::kLogicalHeight,
+                                          SDL_LOGICAL_PRESENTATION_LETTERBOX))
+    {
+        std::cerr << "SDL_SetRenderLogicalPresentation failed (non-fatal): " << SDL_GetError() << std::endl;
+    }
+    else
+    {
+        std::cout << "SDL_SetRenderLogicalPresentation(" << Playfield::kLogicalWidth << "x" << Playfield::kLogicalHeight
+                  << ", LETTERBOX) OK" << std::endl;
+    }
 
     // V-Sync failure is non-fatal: the loop runs uncapped. A manual cap
     // can land later if a use case (headless CI, broken vsync) demands it.
