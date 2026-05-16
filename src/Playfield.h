@@ -21,9 +21,10 @@ constexpr int kLogicalWidth = 800;
 constexpr int kLogicalHeight = 600;
 
 // Sizes are half-extents because the layout helpers and collision math operate on centers; storing the half-extent
-// avoids "/2" in call sites. Values give classic arcade-Pong proportions on the 800x600 playfield.
-constexpr float kPaddleHalfWidth = 6.0f;
-constexpr float kPaddleHalfHeight = 40.0f;
+// avoids "/2" in call sites. The paddle dimensions (8x32 logical pixels) target the thin, short-bar look of arcade
+// Pong on the 800x600 playfield -- ~1% of width, ~5% of height -- so the playable area dominates the chrome.
+constexpr float kPaddleHalfWidth = 4.0f;
+constexpr float kPaddleHalfHeight = 16.0f;
 constexpr float kBallHalfSize = 6.0f;
 constexpr float kWallInset = 24.0f;
 
