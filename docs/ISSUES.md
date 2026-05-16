@@ -20,7 +20,7 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 ## Milestone: Static playfield
 
-> The following deliverables turn the black SDL3 window into a recognisable Pong layout: a fixed logical resolution with letterboxed scaling, the static playfield elements (paddles, ball, dashed centre line) driven by pure layout helpers, and a placeholder score rendered via a deliberately chosen text-rendering approach that the menus milestone will reuse. Each entry below is intended to map to one pull request.
+> The following deliverables turn the black SDL3 window into a recognisable Pong layout: a fixed logical resolution with letterboxed scaling, the static playfield elements (paddles, ball, dashed centre line) driven by layout helpers, and a placeholder score rendered via a deliberately chosen text-rendering approach that the menus milestone will reuse. Each entry below is intended to map to one pull request.
 
 ### Pick a text-rendering approach and draw the placeholder score
 
@@ -47,8 +47,8 @@ This recommendation is open for revision before the implementation PR — record
 - Add `src/TextRenderer.{h,cpp}` with a header-level comment recording the chosen approach and the rationale (one short paragraph).
 - For **option 2 (recommended)**:
   - Define a `static constexpr` glyph table for `0..9` plus the alphabet needed by the menus milestone (at minimum the letters that spell `PONG`, `PAUSE`, `GAME OVER`, `1 PLAYER`, `2 PLAYER`, `RESTART`, `QUIT`). One bit per pixel, stored as `uint8_t` rows for a 5x7 glyph or `uint16_t` rows for a 7x9 glyph.
-  - Provide a pure layout function returning the on-pixel rectangles for a string: `std::vector<Rect> textGlyphRects(std::string_view text, float originX, float originY, float pixelSize, float glyphSpacing)`. No SDL include in this translation unit's header.
-  - Provide a thin renderer entry point in `TextRenderer.cpp` that calls `SDL_RenderFillRect` once per returned `Rect`. This is the only SDL-touching function.
+  - Provide a layout function returning the on-pixel rectangles for a string: `std::vector<SDL_FRect> textGlyphRects(std::string_view text, float originX, float originY, float pixelSize, float glyphSpacing)`.
+  - Provide a thin renderer entry point in `TextRenderer.cpp` that calls `SDL_RenderFillRect` once per returned `SDL_FRect`.
 - For **option 1** (if chosen instead), the tasks collapse to: a `static constexpr` segment-on/off table for `0..9`, a pure helper returning the per-segment rectangles for a digit drawn at a given top-left position with a given segment thickness, and the thin SDL renderer.
 - For **option 3** (if chosen instead), additional tasks: pin an `SDL3_ttf` tag in `FetchContent`, update the Ubuntu CI step with the new dev-headers, bundle a permissively-licensed font under `assets/` and document its licence in the `README.md`, resolve the asset path on all three OSes (`SDL_GetBasePath` is the usual answer).
 - Draw `0 0` (a placeholder score) centred horizontally near the top of the playfield (e.g. `y = 24` logical pixels), with the left digit slightly to the left of the centre line and the right digit slightly to the right. Use the same white as the other elements.
