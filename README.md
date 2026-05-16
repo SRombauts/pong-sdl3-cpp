@@ -203,7 +203,7 @@ Tests are a first-class deliverable. The full per-milestone test list lives in [
 What is **not** unit-tested (by design):
 
 - SDL window, renderer, and event-pump initialization.
-- Real gamepad hot-plug behaviour (CI runners have no physical gamepad).
+- Real gamepad hot-plug behavior (CI runners have no physical gamepad).
 - Audio playback.
 - Visual rendering output.
 

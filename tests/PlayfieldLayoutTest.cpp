@@ -16,13 +16,13 @@ constexpr float kPaddleHW = Playfield::kPaddleHalfWidth;
 constexpr float kPaddleHH = Playfield::kPaddleHalfHeight;
 constexpr float kBallHS = Playfield::kBallHalfSize;
 constexpr float kInset = Playfield::kWallInset;
-constexpr float kDashW = Playfield::kCentreDashWidth;
-constexpr float kDashH = Playfield::kCentreDashHeight;
-constexpr float kDashGap = Playfield::kCentreDashGap;
-constexpr int kDashN = Playfield::kCentreDashSegmentCount;
+constexpr float kDashW = Playfield::kCenterDashWidth;
+constexpr float kDashH = Playfield::kCenterDashHeight;
+constexpr float kDashGap = Playfield::kCenterDashGap;
+constexpr int kDashN = Playfield::kCenterDashSegmentCount;
 } // namespace
 
-TEST_CASE("leftPaddle: centred vertically, inset from the left wall")
+TEST_CASE("leftPaddle: centered vertically, inset from the left wall")
 {
     const SDL_FRect r = PlayfieldLayout::leftPaddle(kWidth, kHeight, kPaddleHW, kPaddleHH, kInset);
 
@@ -33,7 +33,7 @@ TEST_CASE("leftPaddle: centred vertically, inset from the left wall")
     CHECK((r.y + r.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f));
 }
 
-TEST_CASE("rightPaddle: centred vertically, inset from the right wall")
+TEST_CASE("rightPaddle: centered vertically, inset from the right wall")
 {
     const SDL_FRect r = PlayfieldLayout::rightPaddle(kWidth, kHeight, kPaddleHW, kPaddleHH, kInset);
 
@@ -71,12 +71,12 @@ TEST_CASE("paddles: oversized paddle still returns a usable rect (no NaN, no ass
     CHECK_FALSE(std::isnan(r.x));
     CHECK_FALSE(std::isnan(r.y));
 
-    // Still vertically centred (the midpoint is on the playfield centre line) -- only the rect extends past the top
+    // Still vertically centered (the midpoint is on the playfield center line) -- only the rect extends past the top
     // and bottom walls.
     CHECK((r.y + r.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f));
 }
 
-TEST_CASE("ball: centred on both axes within sub-pixel tolerance")
+TEST_CASE("ball: centered on both axes within sub-pixel tolerance")
 {
     const SDL_FRect r = PlayfieldLayout::ball(kWidth, kHeight, kBallHS);
 
@@ -86,10 +86,10 @@ TEST_CASE("ball: centred on both axes within sub-pixel tolerance")
     CHECK((r.y + r.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f).epsilon(1e-4));
 }
 
-TEST_CASE("centreDashSegments: production tuning yields the expected count and total covered length")
+TEST_CASE("centerDashSegments: production tuning yields the expected count and total covered length")
 {
     const std::vector<SDL_FRect> dashes =
-        PlayfieldLayout::centreDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
+        PlayfieldLayout::centerDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
 
     REQUIRE(static_cast<int>(dashes.size()) == kDashN);
 
@@ -101,10 +101,10 @@ TEST_CASE("centreDashSegments: production tuning yields the expected count and t
     CHECK(totalCovered == doctest::Approx(static_cast<float>(kDashN) * kDashH));
 }
 
-TEST_CASE("centreDashSegments: line is horizontally centred and gaps follow the documented convention")
+TEST_CASE("centerDashSegments: line is horizontally centered and gaps follow the documented convention")
 {
     const std::vector<SDL_FRect> dashes =
-        PlayfieldLayout::centreDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
+        PlayfieldLayout::centerDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
     REQUIRE(dashes.size() >= 2);
 
     const float playfieldMidX = static_cast<float>(kWidth) * 0.5f;
@@ -126,20 +126,20 @@ TEST_CASE("centreDashSegments: line is horizontally centred and gaps follow the 
     }
 }
 
-TEST_CASE("centreDashSegments: first and last segment positions stay inside the playfield")
+TEST_CASE("centerDashSegments: first and last segment positions stay inside the playfield")
 {
     const std::vector<SDL_FRect> dashes =
-        PlayfieldLayout::centreDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
+        PlayfieldLayout::centerDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
     REQUIRE(!dashes.empty());
 
     CHECK(dashes.front().y >= 0.0f);
     CHECK((dashes.back().y + dashes.back().h) <= static_cast<float>(kHeight));
 }
 
-TEST_CASE("centreDashSegments: defensive segmentCount == 1 returns a single centred dash")
+TEST_CASE("centerDashSegments: defensive segmentCount == 1 returns a single centered dash")
 {
     const std::vector<SDL_FRect> dashes =
-        PlayfieldLayout::centreDashSegments(kWidth, kHeight, 1, kDashW, kDashH, kDashGap);
+        PlayfieldLayout::centerDashSegments(kWidth, kHeight, 1, kDashW, kDashH, kDashGap);
 
     REQUIRE(dashes.size() == 1);
     const SDL_FRect& d = dashes.front();
@@ -149,14 +149,14 @@ TEST_CASE("centreDashSegments: defensive segmentCount == 1 returns a single cent
     CHECK((d.y + d.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f));
 }
 
-TEST_CASE("centreDashSegments: defensive segmentCount == 0 returns an empty range with no negative dimensions")
+TEST_CASE("centerDashSegments: defensive segmentCount == 0 returns an empty range with no negative dimensions")
 {
     const std::vector<SDL_FRect> dashes =
-        PlayfieldLayout::centreDashSegments(kWidth, kHeight, 0, kDashW, kDashH, kDashGap);
+        PlayfieldLayout::centerDashSegments(kWidth, kHeight, 0, kDashW, kDashH, kDashGap);
     CHECK(dashes.empty());
 
     // Negative segmentCount is treated the same way (defensive against int-typed callers), no crash.
     const std::vector<SDL_FRect> alsoEmpty =
-        PlayfieldLayout::centreDashSegments(kWidth, kHeight, -3, kDashW, kDashH, kDashGap);
+        PlayfieldLayout::centerDashSegments(kWidth, kHeight, -3, kDashW, kDashH, kDashGap);
     CHECK(alsoEmpty.empty());
 }

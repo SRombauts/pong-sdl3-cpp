@@ -13,22 +13,22 @@ namespace
 {
 constexpr int kWidth = Playfield::kLogicalWidth;
 constexpr int kHeight = Playfield::kLogicalHeight;
-constexpr float kDashW = Playfield::kCentreDashWidth;
-constexpr float kDashH = Playfield::kCentreDashHeight;
-constexpr float kDashGap = Playfield::kCentreDashGap;
-constexpr int kDashN = Playfield::kCentreDashSegmentCount;
+constexpr float kDashW = Playfield::kCenterDashWidth;
+constexpr float kDashH = Playfield::kCenterDashHeight;
+constexpr float kDashGap = Playfield::kCenterDashGap;
+constexpr int kDashN = Playfield::kCenterDashSegmentCount;
 } // namespace
 
-// PlayfieldRenderer delegates the actual layout to PlayfieldLayout::centreDashSegments at construction time. Verifying
+// PlayfieldRenderer delegates the actual layout to PlayfieldLayout::centerDashSegments at construction time. Verifying
 // the cache content matches the helper output is what lets the helper's existing tests stay authoritative on the
 // layout math; this case only guards the wiring.
-TEST_CASE("PlayfieldRenderer caches the same dashes as PlayfieldLayout::centreDashSegments")
+TEST_CASE("PlayfieldRenderer caches the same dashes as PlayfieldLayout::centerDashSegments")
 {
     const PlayfieldRenderer renderer(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
     const std::vector<SDL_FRect> expected =
-        PlayfieldLayout::centreDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
+        PlayfieldLayout::centerDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
 
-    const std::vector<SDL_FRect>& cached = renderer.centreDashes();
+    const std::vector<SDL_FRect>& cached = renderer.centerDashes();
 
     REQUIRE(cached.size() == expected.size());
     for (std::size_t i = 0; i < cached.size(); ++i)
@@ -41,20 +41,20 @@ TEST_CASE("PlayfieldRenderer caches the same dashes as PlayfieldLayout::centreDa
 }
 
 // The whole point of the class is that the layout math runs once. Comparing the underlying buffer address across two
-// reads catches a refactor that would accidentally recompute (or re-allocate) the vector on every centreDashes() call.
-TEST_CASE("PlayfieldRenderer::centreDashes returns a stable buffer across reads")
+// reads catches a refactor that would accidentally recompute (or re-allocate) the vector on every centerDashes() call.
+TEST_CASE("PlayfieldRenderer::centerDashes returns a stable buffer across reads")
 {
     const PlayfieldRenderer renderer(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
 
-    const SDL_FRect* first = renderer.centreDashes().data();
-    const SDL_FRect* second = renderer.centreDashes().data();
+    const SDL_FRect* first = renderer.centerDashes().data();
+    const SDL_FRect* second = renderer.centerDashes().data();
     CHECK(first == second);
 }
 
-// Defensive parity with PlayfieldLayout::centreDashSegments: a degenerate segment count produces an empty cache
+// Defensive parity with PlayfieldLayout::centerDashSegments: a degenerate segment count produces an empty cache
 // instead of asserting or allocating a sentinel.
 TEST_CASE("PlayfieldRenderer: defensive segmentCount == 0 produces an empty cache")
 {
     const PlayfieldRenderer renderer(kWidth, kHeight, 0, kDashW, kDashH, kDashGap);
-    CHECK(renderer.centreDashes().empty());
+    CHECK(renderer.centerDashes().empty());
 }

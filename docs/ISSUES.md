@@ -20,7 +20,7 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 ## Milestone: Static playfield
 
-> The following deliverables turn the black SDL3 window into a recognisable Pong layout: a fixed logical resolution with letterboxed scaling, the static playfield elements (paddles, ball, dashed centre line) driven by layout helpers, and a placeholder score rendered via a deliberately chosen text-rendering approach that the menus milestone will reuse. Each entry below is intended to map to one pull request.
+> The following deliverables turn the black SDL3 window into a recognizable Pong layout: a fixed logical resolution with letterboxed scaling, the static playfield elements (paddles, ball, dashed center line) driven by layout helpers, and a placeholder score rendered via a deliberately chosen text-rendering approach that the menus milestone will reuse. Each entry below is intended to map to one pull request.
 
 ### Pick a text-rendering approach and draw the placeholder score
 
@@ -36,7 +36,7 @@ Three candidates from the roadmap, with trade-offs surfaced for the decision:
 
 2. **Small hand-drawn bitmap font (3x5 or 5x7 grid of pixels per glyph)**. A `static constexpr` glyph table covering at minimum `0..9`, plus the letters used by the menus milestone (`P`, `A`, `U`, `S`, `E`, `G`, `M`, `O`, `V`, `R`, `1`, `2`, `L`, `Y`, `N`, …). More upfront work than 7-segment, but the resulting renderer is reusable end-to-end and avoids a second text-rendering decision later. Still zero dependencies and no asset to ship.
 
-3. **`SDL3_ttf` with a small bundled TTF font**. Most flexibility, full Unicode and antialiasing. But adds a `FetchContent` dependency, CI dev-headers on Linux (likely `libfreetype-dev`, possibly `libharfbuzz-dev`), a runtime asset path that has to be resolved on three OSes, and a font-licence note in the `README.md`. Heaviest option for an arcade-style game whose menus need a handful of fixed strings.
+3. **`SDL3_ttf` with a small bundled TTF font**. Most flexibility, full Unicode and antialiasing. But adds a `FetchContent` dependency, CI dev-headers on Linux (likely `libfreetype-dev`, possibly `libharfbuzz-dev`), a runtime asset path that has to be resolved on three OSes, and a font-license note in the `README.md`. Heaviest option for an arcade-style game whose menus need a handful of fixed strings.
 
 **Recommendation**: option 2 (small bitmap font). It costs marginally more than option 1 for this milestone and pays back immediately in the menus milestone — no second text stack to ship, no rework. Option 1 is acceptable if the project is willing to revisit text rendering when menus land; option 3 is over-engineering for the scope.
 
@@ -50,17 +50,17 @@ This recommendation is open for revision before the implementation PR — record
   - Provide a layout function returning the on-pixel rectangles for a string: `std::vector<SDL_FRect> textGlyphRects(std::string_view text, float originX, float originY, float pixelSize, float glyphSpacing)`.
   - Provide a thin renderer entry point in `TextRenderer.cpp` that calls `SDL_RenderFillRect` once per returned `SDL_FRect`.
 - For **option 1** (if chosen instead), the tasks collapse to: a `static constexpr` segment-on/off table for `0..9`, a pure helper returning the per-segment rectangles for a digit drawn at a given top-left position with a given segment thickness, and the thin SDL renderer.
-- For **option 3** (if chosen instead), additional tasks: pin an `SDL3_ttf` tag in `FetchContent`, update the Ubuntu CI step with the new dev-headers, bundle a permissively-licensed font under `assets/` and document its licence in the `README.md`, resolve the asset path on all three OSes (`SDL_GetBasePath` is the usual answer).
-- Draw `0 0` (a placeholder score) centred horizontally near the top of the playfield (e.g. `y = 24` logical pixels), with the left digit slightly to the left of the centre line and the right digit slightly to the right. Use the same white as the other elements.
+- For **option 3** (if chosen instead), additional tasks: pin an `SDL3_ttf` tag in `FetchContent`, update the Ubuntu CI step with the new dev-headers, bundle a permissively-licensed font under `assets/` and document its license in the `README.md`, resolve the asset path on all three OSes (`SDL_GetBasePath` is the usual answer).
+- Draw `0 0` (a placeholder score) centered horizontally near the top of the playfield (e.g. `y = 24` logical pixels), with the left digit slightly to the left of the center line and the right digit slightly to the right. Use the same white as the other elements.
 - Append the new sources/headers to `PONG_SRC` / `PONG_INC` in `CMakeLists.txt` and to the test target's source list in `tests/CMakeLists.txt`.
 - Tests under `tests/TextRendererTest.cpp` matching the chosen approach:
   - Option 1: segment-on/off pattern for each digit `0..9` (one `SUBCASE` per digit, or one parametrised table), per-segment rectangle layout for a digit drawn at a given top-left position.
   - Option 2: per-glyph pattern for each supported character (a representative subset is fine; cover at least `0`, `9`, `P`, `A`, `space`), and a multi-character layout test asserting that the total width matches `len(text) * (glyphWidth + glyphSpacing) - glyphSpacing` (no trailing spacing) and that shifting the origin shifts every output rect by the same delta.
-  - Option 3: a unit-testable wrapper around glyph-position math (TTF metrics are out of scope) — at minimum verify the centring formula used to place a string in a target rectangle.
+  - Option 3: a unit-testable wrapper around glyph-position math (TTF metrics are out of scope) — at minimum verify the centering formula used to place a string in a target rectangle.
 
 #### Acceptance criteria
 
-- The window shows a centred `0 0` placeholder score above the playfield, in the same white as the other static elements, at the documented logical-pixel y-offset.
+- The window shows a centered `0 0` placeholder score above the playfield, in the same white as the other static elements, at the documented logical-pixel y-offset.
 - `TextRenderer.h` documents the chosen approach and the rationale. The chosen approach is structurally capable of rendering every menu string listed in the roadmap's `Screens and menus` milestone (at least digits + the menu alphabet) without a second text-rendering stack.
 - All new unit tests pass locally and in CI on Windows, Linux, and macOS.
 - `clang-format --dry-run --Werror` stays clean on the new and edited files.

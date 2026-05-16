@@ -10,7 +10,7 @@
 // sequence each launch.
 //
 // Non-copyable / non-movable by inheritance from IRandomSource (same shape as the IClock hierarchy). The free helper
-// returns by value and relies on mandatory return-value optimisation (C++17+) for prvalue returns.
+// returns by value and relies on mandatory return-value optimization (C++17+) for prvalue returns.
 class RandomSourceMt19937 : public IRandomSource
 {
 public:

@@ -50,7 +50,7 @@ These anchors operationalize the steps above without changing them.
 - Use `scripts/build.ps1` (Windows) or `scripts/build.sh` (Linux/macOS); see the `build` skill. A non-zero exit code means the build failed — surface it, don't retry blindly.
 - Run the test suite with `scripts/test.ps1` (Windows) or `scripts/test.sh` (Linux/macOS). The raw `ctest --test-dir build --output-on-failure` invocation is also fine. Add or extend tests under `tests/` for any new logic.
 - Verify configure-time toggles still work when relevant (e.g. `-DBUILD_TESTING=OFF`).
-- Honour `.editorconfig` and `.clang-format` (when present) for style.
+- Honor `.editorconfig` and `.clang-format` (when present) for style.
 
 ### Step 3 — review
 
@@ -59,7 +59,7 @@ Before committing, re-read the diff with these checks:
 - All acceptance criteria of the task (so far) are met.
 - The change is minimal and focused; no drive-by edits unrelated to the task.
 - Edge cases and failure modes are covered by tests.
-- Documentation (`README.md`, `docs/`, skill files) is updated when behaviour or workflow changes.
+- Documentation (`README.md`, `docs/`, skill files) is updated when behavior or workflow changes.
 - A simpler or more idiomatic alternative was considered and consciously rejected.
 
 ### Step 4 — commit
@@ -72,7 +72,7 @@ Before committing, re-read the diff with these checks:
 
 **Do not sprinkle issue references in commit messages.** When a GitHub issue exists, the branch name already encodes the number (`feature/<taskid>-…`) and the PR description carries the formal `Closes #<taskid>`. When the task lives only in `docs/ISSUES.md`, there is no number to reference at all. Boilerplate like `Refs #11.` or `For #11:` at the start of every commit body is pure noise — it makes individual commits read as bureaucratic instead of natural, and it duplicates information that already lives one click away. Save explicit issue links for the PR description and, very occasionally, for a single commit whose subject genuinely needs the context to be understood standalone.
 
-**Bodies are optional, not the default.** Most commits in this repo are subject-only (see `git log --oneline -20` on `main`). Add a body only when the change has a non-obvious *why* that the subject cannot carry: an architectural trade-off, a deliberate deviation from a spec, a subtle behaviour change, or a foot-gun a future reader could miss. If a body is added, keep it tight (a short paragraph is plenty); long expository bodies belong in the PR description.
+**Bodies are optional, not the default.** Most commits in this repo are subject-only (see `git log --oneline -20` on `main`). Add a body only when the change has a non-obvious *why* that the subject cannot carry: an architectural trade-off, a deliberate deviation from a spec, a subtle behavior change, or a foot-gun a future reader could miss. If a body is added, keep it tight (a short paragraph is plenty); long expository bodies belong in the PR description.
 
 **Format bodies like prose, not like a wall.** Wrap lines at roughly 72 columns and split distinct ideas into blank-line-separated paragraphs. Avoid one ~300-character line that crams three sentences together — it is hard to read in `git log`, in PR review UIs, and in narrow terminals.
 

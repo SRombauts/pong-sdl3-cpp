@@ -64,7 +64,7 @@ private:
 
     std::unique_ptr<IClock> m_clock;
     std::unique_ptr<IRandomSource> m_random;
-    // Owns the static-playfield rectangles (centre-line dashes). Held by unique_ptr to keep this header SDL-free; the
+    // Owns the static-playfield rectangles (center-line dashes). Held by unique_ptr to keep this header SDL-free; the
     // member is constructed eagerly in Application's constructor since the layout math has no SDL dependency.
     std::unique_ptr<PlayfieldRenderer> m_playfield;
     std::uint64_t m_lastTickNs = 0;

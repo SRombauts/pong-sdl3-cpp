@@ -42,7 +42,7 @@ SDL_FRect ball(int playfieldWidth, int playfieldHeight, float ballHalfSize)
     return rect;
 }
 
-std::vector<SDL_FRect> centreDashSegments(int playfieldWidth,
+std::vector<SDL_FRect> centerDashSegments(int playfieldWidth,
                                           int playfieldHeight,
                                           int segmentCount,
                                           float dashWidth,
@@ -59,7 +59,7 @@ std::vector<SDL_FRect> centreDashSegments(int playfieldWidth,
 
     if (segmentCount == 1)
     {
-        // One dash cannot honour the "first dash starts at gap/2" symmetry rule, so centre it vertically instead. This
+        // One dash cannot honor the "first dash starts at gap/2" symmetry rule, so center it vertically instead. This
         // matches the defensive case documented in the header.
         SDL_FRect rect{};
         rect.x = dashX;

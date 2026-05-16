@@ -116,7 +116,7 @@ Scope:
 - Draw placeholder score using the chosen text-rendering approach.
 - Add unit tests for the layout helpers of this milestone (TDD-friendly: each helper is a small free function):
   - Dashed center-line segment computation: given playfield height, segment count, and gap, return the list of segment rectangles. Verify total covered length, gap respected, first/last segment positions.
-  - Default starting positions for both paddles and the ball as a function of the logical playfield dimensions and entity half-sizes (paddles centred vertically and inset from the side walls; ball centred).
+  - Default starting positions for both paddles and the ball as a function of the logical playfield dimensions and entity half-sizes (paddles centered vertically and inset from the side walls; ball centered).
   - If the chosen score rendering uses 7-segment digits: the segment-on/off pattern for `0..9` and the per-segment rectangle layout for a digit drawn at a given top-left position.
 
 Non-goals:
@@ -198,7 +198,7 @@ Acceptance criteria:
 Notes:
 
 - Use the SDL3 gamepad API (`SDL_Gamepad`, `SDL_GetGamepadAxis`, `SDL_EVENT_GAMEPAD_*`) rather than the lower-level joystick API; the gamepad layer abstracts over device-specific quirks.
-- CI runners typically have no physical gamepad attached. Tests for this milestone must therefore not require a real gamepad; they cover only the device-independent logic. End-to-end gamepad behaviour is a manual smoke test.
+- CI runners typically have no physical gamepad attached. Tests for this milestone must therefore not require a real gamepad; they cover only the device-independent logic. End-to-end gamepad behavior is a manual smoke test.
 
 ## Ball and collisions
 

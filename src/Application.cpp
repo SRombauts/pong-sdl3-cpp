@@ -23,10 +23,10 @@ Application::Application(std::string title,
       m_random(random ? std::move(random) : std::make_unique<RandomSourceMt19937>(makeNonDeterministicSeed())),
       m_playfield(std::make_unique<PlayfieldRenderer>(Playfield::kLogicalWidth,
                                                       Playfield::kLogicalHeight,
-                                                      Playfield::kCentreDashSegmentCount,
-                                                      Playfield::kCentreDashWidth,
-                                                      Playfield::kCentreDashHeight,
-                                                      Playfield::kCentreDashGap))
+                                                      Playfield::kCenterDashSegmentCount,
+                                                      Playfield::kCenterDashWidth,
+                                                      Playfield::kCenterDashHeight,
+                                                      Playfield::kCenterDashGap))
 {
 }
 
@@ -201,7 +201,7 @@ void Application::render()
     // Static-chrome draw: the dash list was computed once at construction; no per-frame layout math here.
     m_playfield->draw(m_renderer);
 
-    // Restore the clear colour so the next SDL_RenderClear() starts from black even if a future caller forgets it.
+    // Restore the clear color so the next SDL_RenderClear() starts from black even if a future caller forgets it.
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
     SDL_RenderPresent(m_renderer);

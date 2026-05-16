@@ -32,13 +32,33 @@ description: Repository layout and naming conventions. Use to find or place file
 - Test files mirror the unit they test, in CamelCase, with a `Test` suffix: tests for `Application` go into `tests/ApplicationTest.cpp`. The doctest entry point stays at `tests/main.cpp`.
 - CMake target names use kebab-case (`pong-sdl3-cpp`, `pong-sdl3-cpp-tests`).
 
+## English convention
+
+Use **American English** spelling throughout the project: identifier names, parameter names, code comments, doctest case names, commit messages, PR descriptions, `docs/`, `README.md`, and skill files. The same convention applies to agent-to-user communication in chat and PR reviews so the in-repo wording and the conversation around it stay aligned.
+
+Quick reference for the spellings most likely to drift in this codebase:
+
+| Use | Not |
+| --- | --- |
+| `color` | `colour` |
+| `center` / `centered` / `centering` / `centers` | `centre` / `centred` / `centring` / `centres` |
+| `behavior` | `behaviour` |
+| `gray` | `grey` |
+| `modeled` / `modeling` | `modelled` / `modelling` |
+| `-ize` / `-ization` endings (`optimize`, `recognize`, `realize`, `analyze`, `emphasize`, `organize`, `categorize`) | `-ise` / `-isation` |
+| `license` (both noun and verb) | `licence` (UK noun) |
+| `defense`, `meter`, `theater`, `honor`, `favor`, `labor`, `neighbor` | `defence`, `metre`, `theatre`, `honour`, `favour`, `labour`, `neighbour` |
+| `judgment` | `judgement` |
+
+The convention is enforced by review, not tooling. When introducing a new identifier or rewriting a comment block, prefer the American spelling from the start rather than relying on a follow-up rename. Pre-existing identifiers that still use British spelling should be renamed in their own focused commit (covering the definition and every call site together) so reviewers can read the rename in isolation.
+
 ## Code comments
 
 - Describe **architecture, design goals, and *why***, not *how*. The code shows the "how"; comments earn their keep by explaining the choice, the invariant, or the rejected alternative.
 - **Cut anything the code, the file name, or the signature already says.** A tight intent comment beats a paragraph re-narrating the code below. "Concise" applies to *content*, not line length: still wrap at the same **120-column** limit as code (see the `format` skill) and run `clang-format -i` on touched files so reflow stays consistent.
 - **Drop anything that ages badly or restates universal hygiene.** In particular: forward-looking promises about future milestones (`"will be revisited by the Paddle-controls milestone"`), generic C++ admonitions that apply everywhere (`"do not hard-code these outside this header"`), parentheticals that re-state the surrounding context (`"Static-playfield tuning constants"` inside `Playfield.h`), and `(see foo.cpp)` cross-references the reader can grep for in two seconds. Keep the comment if it explains *this* choice or invariant; cut it if it just states a general best practice.
 - Skip obvious comments. `// Returns the elapsed time in seconds` above `double secondsBetween(...)` is noise — the signature already says it.
-- Public-API contract notes (preconditions, defensive behaviour, ownership) are fine in headers when they document something the signature itself cannot.
+- Public-API contract notes (preconditions, defensive behavior, ownership) are fine in headers when they document something the signature itself cannot.
 
 ## Build & test commands
 

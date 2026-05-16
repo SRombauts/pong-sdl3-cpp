@@ -8,7 +8,7 @@ PlayfieldRenderer::PlayfieldRenderer(int playfieldWidth,
                                      float dashWidth,
                                      float dashHeight,
                                      float gap)
-    : m_centreDashes(PlayfieldLayout::centreDashSegments(playfieldWidth,
+    : m_centerDashes(PlayfieldLayout::centerDashSegments(playfieldWidth,
                                                          playfieldHeight,
                                                          segmentCount,
                                                          dashWidth,
@@ -19,7 +19,7 @@ PlayfieldRenderer::PlayfieldRenderer(int playfieldWidth,
 
 void PlayfieldRenderer::draw(SDL_Renderer* renderer) const
 {
-    for (const SDL_FRect& dash : m_centreDashes)
+    for (const SDL_FRect& dash : m_centerDashes)
     {
         SDL_RenderFillRect(renderer, &dash);
     }

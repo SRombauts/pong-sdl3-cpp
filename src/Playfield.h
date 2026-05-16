@@ -20,17 +20,17 @@ namespace Playfield
 constexpr int kLogicalWidth = 800;
 constexpr int kLogicalHeight = 600;
 
-// Sizes are half-extents because the layout helpers and collision math operate on centres; storing the half-extent
+// Sizes are half-extents because the layout helpers and collision math operate on centers; storing the half-extent
 // avoids "/2" in call sites. Values give classic arcade-Pong proportions on the 800x600 playfield.
 constexpr float kPaddleHalfWidth = 6.0f;
 constexpr float kPaddleHalfHeight = 40.0f;
 constexpr float kBallHalfSize = 6.0f;
 constexpr float kWallInset = 24.0f;
 
-// Dashed centre line. With kCentreDashSegmentCount = 20 and pitch (kCentreDashHeight + kCentreDashGap) = 30, the 20
+// Dashed center line. With kCenterDashSegmentCount = 20 and pitch (kCenterDashHeight + kCenterDashGap) = 30, the 20
 // bands exactly tile the 600-pixel playfield, leaving symmetric gap/2 = 6 px clearances at top and bottom.
-constexpr float kCentreDashWidth = 6.0f;
-constexpr float kCentreDashHeight = 18.0f;
-constexpr float kCentreDashGap = 12.0f;
-constexpr int kCentreDashSegmentCount = 20;
+constexpr float kCenterDashWidth = 6.0f;
+constexpr float kCenterDashHeight = 18.0f;
+constexpr float kCenterDashGap = 12.0f;
+constexpr int kCenterDashSegmentCount = 20;
 } // namespace Playfield
