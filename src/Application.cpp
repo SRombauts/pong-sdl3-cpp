@@ -203,17 +203,23 @@ void Application::render()
     // Static-chrome draw: the dash list was computed once at construction; no per-frame layout math here.
     m_playfield->draw(m_renderer);
 
-    // Placeholder score "0 0" centered horizontally above the playfield. The literal text is replaced by the live score
-    // in the Scoring-and-match-flow milestone; the placement constants in Playfield.h stay.
-    constexpr std::string_view kScoreText = "0 0";
+    // Placeholder per-player scores: a single-digit "0" drawn on each side, centered on the midpoint of its half of
+    // the playfield so the readouts sit clear of the dashed center line. The literal "0" is replaced by the live
+    // score in the Scoring-and-match-flow milestone; the placement and font-scale constants in Playfield.h stay.
+    // The centering formula assumes a single-digit string; multi-digit scores will need the full
+    // N*(glyphWidth + spacing) - spacing width once Scoring lands, which is a localized change here.
+    constexpr std::string_view kPlayerScore = "0";
     const float scoreGlyphWidth = static_cast<float>(TextRenderer::kGlyphPixelCols) * Playfield::kScorePixelSize;
-    const float scoreTotalWidth =
-        static_cast<float>(kScoreText.size()) * (scoreGlyphWidth + Playfield::kScoreGlyphSpacing) -
-        Playfield::kScoreGlyphSpacing;
-    const float scoreOriginX = (static_cast<float>(Playfield::kLogicalWidth) - scoreTotalWidth) * 0.5f;
+    const float scoreHalfWidth = scoreGlyphWidth * 0.5f;
     TextRenderer::drawText(m_renderer,
-                           kScoreText,
-                           scoreOriginX,
+                           kPlayerScore,
+                           Playfield::kScoreLeftCenterX - scoreHalfWidth,
+                           Playfield::kScoreTopY,
+                           Playfield::kScorePixelSize,
+                           Playfield::kScoreGlyphSpacing);
+    TextRenderer::drawText(m_renderer,
+                           kPlayerScore,
+                           Playfield::kScoreRightCenterX - scoreHalfWidth,
                            Playfield::kScoreTopY,
                            Playfield::kScorePixelSize,
                            Playfield::kScoreGlyphSpacing);

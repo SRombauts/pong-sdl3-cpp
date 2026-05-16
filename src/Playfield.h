@@ -34,14 +34,17 @@ constexpr float kCenterDashHeight = 18.0f;
 constexpr float kCenterDashGap = 12.0f;
 constexpr int kCenterDashSegmentCount = 20;
 
-// Placeholder score readout, drawn by Application::render via TextRenderer. The score string ("0 0" today, real values
-// once the Scoring-and-match-flow milestone wires them in) is centered horizontally on the playfield's vertical midline
-// and pinned `kScoreTopY` logical pixels below the top edge. kScorePixelSize scales each font pixel of the 5x7 bitmap
-// glyph: at 12.0 logical pixels per font pixel, each digit occupies 60x84 logical pixels (chosen to match the bold,
-// offset and kScorePixelSize font scale: at 12.0 logical pixels per font pixel, each digit of the 4x8 bitmap font
-// kScoreGlyphSpacing of breathing room on either side. These three constants are tuning knobs (font size, gap, top
-// offset) and are expected to be revisited by the scoring-visuals milestone.
+// Placeholder per-player score readouts, drawn by Application::render via TextRenderer. Each player's score is
+// rendered as its own string and centered horizontally on the midpoint of its half of the playfield (left score on
+// x = kLogicalWidth/4, right score on x = 3*kLogicalWidth/4); this matches arcade-Pong reference frames where the two
+// scores sit well away from the dashed center line rather than hugging it. Both scores share the same kScoreTopY top
+// offset and kScorePixelSize font scale: at 10.0 logical pixels per font pixel, each digit occupies 60x84 logical
+// arcade-cabinet readout of reference Pong frames) and the literal space character in "0 0" yields a 60-pixel gap with
+// scores that the Scoring-and-match-flow milestone will introduce. All five constants are tuning knobs, expected to
+// be revisited by the scoring-visuals milestone once real values land.
 constexpr float kScoreTopY = 24.0f;
 constexpr float kScorePixelSize = 10.0f;
 constexpr float kScoreGlyphSpacing = 4.0f;
+constexpr float kScoreLeftCenterX = static_cast<float>(kLogicalWidth) * 0.25f;
+constexpr float kScoreRightCenterX = static_cast<float>(kLogicalWidth) * 0.75f;
 } // namespace Playfield
