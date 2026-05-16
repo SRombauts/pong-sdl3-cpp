@@ -72,6 +72,14 @@ constexpr int kGlyphPixelRows = 8;
                                                     float pixelSize,
                                                     float glyphSpacing);
 
+// Total layout width of `text` rendered with the given grid scale, in logical pixels. Returns 0 on the same defensive
+// inputs as textGlyphRects (empty text or non-positive pixelSize). The formula is the documented
+// N * (kGlyphPixelCols * pixelSize + glyphSpacing) - glyphSpacing (one fewer spacing slot than glyphs).
+//
+// Useful for centering or right-aligning multi-character strings (scores once they reach two digits, menu labels of
+// varying length) without re-deriving the formula at every call site.
+[[nodiscard]] float textWidth(std::string_view text, float pixelSize, float glyphSpacing);
+
 // Thin SDL boundary: computes the rects via textGlyphRects() and issues one SDL_RenderFillRect per rect. Does not
 // touch the renderer's draw-color state, so the caller can set white once and draw paddles, ball, dashes, and text
 // under the same setup (the same convention PlayfieldRenderer::draw follows).
@@ -85,5 +93,16 @@ void drawText(SDL_Renderer* renderer,
               float originY,
               float pixelSize,
               float glyphSpacing);
+
+// Convenience wrapper around drawText that horizontally centers `text` on `centerX` (its left edge is placed at
+// centerX - textWidth/2). The vertical origin and per-character behavior are identical to drawText. Designed for
+// readouts whose length varies frame-to-frame (single- vs two-digit scores) and menu strings whose length is fixed
+// but inconvenient to pre-compute at every call site.
+void drawTextCentered(SDL_Renderer* renderer,
+                      std::string_view text,
+                      float centerX,
+                      float originY,
+                      float pixelSize,
+                      float glyphSpacing);
 
 } // namespace TextRenderer

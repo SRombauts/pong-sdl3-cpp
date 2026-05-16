@@ -35,14 +35,14 @@ constexpr float kCenterDashHeight = 18.0f;
 constexpr float kCenterDashGap = 12.0f;
 constexpr int kCenterDashSegmentCount = 20;
 
-// Placeholder per-player score readouts, drawn by Application::render via TextRenderer. Each player's score is
-// rendered as its own string and centered horizontally on the midpoint of its half of the playfield (left score on
-// x = kLogicalWidth/4, right score on x = 3*kLogicalWidth/4); this matches arcade-Pong reference frames where the two
-// scores sit well away from the dashed center line rather than hugging it. Both scores share the same kScoreTopY top
-// offset and kScorePixelSize font scale: at 10.0 logical pixels per font pixel, each digit occupies 60x84 logical
-// pixels. kScoreGlyphSpacing is unused for the single-digit placeholders today but kept in place for the multi-digit
-// figures. All five constants are tuning knobs, expected to be revisited by the scoring-visuals milestone once real
-// values land.
+// Placeholder per-player score readouts, drawn by Application::render via TextRenderer::drawTextCentered. Each player's
+// score is rendered as its own string and centered horizontally on the midpoint of its half of the playfield (left
+// score on x = kLogicalWidth/4, right score on x = 3*kLogicalWidth/4); this matches arcade-Pong reference frames where
+// the two scores sit well away from the dashed center line rather than hugging it. Both scores share the same
+// kScoreTopY top offset and kScorePixelSize font scale: at 10.0 logical pixels per font pixel, each digit of the 4x8
+// bitmap font occupies 40x80 logical pixels. kScoreGlyphSpacing applies between adjacent digits once a score reaches
+// two figures (drawTextCentered re-centers automatically when the string grows). All five constants are tuning knobs,
+// expected to be revisited by the scoring-visuals milestone once real values land.
 constexpr float kScoreTopY = 24.0f;
 constexpr float kScorePixelSize = 10.0f;
 constexpr float kScoreGlyphSpacing = 4.0f;

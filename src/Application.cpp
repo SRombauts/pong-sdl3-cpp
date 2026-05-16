@@ -205,24 +205,21 @@ void Application::render()
 
     // Placeholder per-player scores: a single-digit "0" drawn on each side, centered on the midpoint of its half of
     // the playfield so the readouts sit clear of the dashed center line. The literal "0" is replaced by the live
-    // score in the Scoring-and-match-flow milestone; the placement and font-scale constants in Playfield.h stay.
-    // The centering formula assumes a single-digit string; multi-digit scores will need the full
-    // N*(glyphWidth + spacing) - spacing width once Scoring lands, which is a localized change here.
+    // score in the Scoring-and-match-flow milestone; drawTextCentered handles the multi-digit case automatically once
+    // that lands. The placement and font-scale constants in Playfield.h stay.
     constexpr std::string_view kPlayerScore = "0";
-    const float scoreGlyphWidth = static_cast<float>(TextRenderer::kGlyphPixelCols) * Playfield::kScorePixelSize;
-    const float scoreHalfWidth = scoreGlyphWidth * 0.5f;
-    TextRenderer::drawText(m_renderer,
-                           kPlayerScore,
-                           Playfield::kScoreLeftCenterX - scoreHalfWidth,
-                           Playfield::kScoreTopY,
-                           Playfield::kScorePixelSize,
-                           Playfield::kScoreGlyphSpacing);
-    TextRenderer::drawText(m_renderer,
-                           kPlayerScore,
-                           Playfield::kScoreRightCenterX - scoreHalfWidth,
-                           Playfield::kScoreTopY,
-                           Playfield::kScorePixelSize,
-                           Playfield::kScoreGlyphSpacing);
+    TextRenderer::drawTextCentered(m_renderer,
+                                   kPlayerScore,
+                                   Playfield::kScoreLeftCenterX,
+                                   Playfield::kScoreTopY,
+                                   Playfield::kScorePixelSize,
+                                   Playfield::kScoreGlyphSpacing);
+    TextRenderer::drawTextCentered(m_renderer,
+                                   kPlayerScore,
+                                   Playfield::kScoreRightCenterX,
+                                   Playfield::kScoreTopY,
+                                   Playfield::kScorePixelSize,
+                                   Playfield::kScoreGlyphSpacing);
 
     // Restore the clear color so the next SDL_RenderClear() starts from black even if a future caller forgets it.
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);

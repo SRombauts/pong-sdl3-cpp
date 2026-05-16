@@ -143,6 +143,16 @@ std::vector<SDL_FRect> textGlyphRects(std::string_view text,
     return rects;
 }
 
+float textWidth(std::string_view text, float pixelSize, float glyphSpacing)
+{
+    if (text.empty() || pixelSize <= 0.0f)
+    {
+        return 0.0f;
+    }
+    const float glyphWidth = static_cast<float>(kGlyphPixelCols) * pixelSize;
+    return static_cast<float>(text.size()) * (glyphWidth + glyphSpacing) - glyphSpacing;
+}
+
 void drawText(SDL_Renderer* renderer,
               std::string_view text,
               float originX,
@@ -159,6 +169,17 @@ void drawText(SDL_Renderer* renderer,
     {
         SDL_RenderFillRect(renderer, &rect);
     }
+}
+
+void drawTextCentered(SDL_Renderer* renderer,
+                      std::string_view text,
+                      float centerX,
+                      float originY,
+                      float pixelSize,
+                      float glyphSpacing)
+{
+    const float width = textWidth(text, pixelSize, glyphSpacing);
+    drawText(renderer, text, centerX - width * 0.5f, originY, pixelSize, glyphSpacing);
 }
 
 } // namespace TextRenderer
