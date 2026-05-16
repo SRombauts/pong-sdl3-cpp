@@ -38,8 +38,11 @@ These anchors operationalize the steps above without changing them.
 
 - The default branch pattern is `feature/<task-name>`, where `<task-name>` is a short kebab-case slug derived from the `docs/ISSUES.md` entry title (or the GitHub issue title, when one exists).
 - If — and only if — a GitHub issue has been filed for the task, prefix the slug with its number: `feature/<taskid>-<task-name>` (e.g. `feature/12-extract-production-source-list`). Issues are no longer routinely filed on GitHub for this repo; tasks normally live only in `docs/ISSUES.md`, so most new branches will use the unprefixed form.
-- For repo-maintenance work that does not correspond to any `docs/ISSUES.md` entry (e.g. authoring a new agent skill from scratch, fixing a stray typo), use `chore/<task-name>` instead.
-- Always branch from an up-to-date `main` and never commit directly to `main`.
+- Always branch a new task from an up-to-date `main`.
+- Repo-maintenance fixes that do not correspond to any `docs/ISSUES.md` entry (a tweak to a skill, a stray typo, a small docs follow-up) do **not** warrant a dedicated branch. Land them on whichever of these two paths is most natural:
+  - directly on `main` when no task is in flight, or
+  - on the current task branch when the fix is related to the work in progress (or is small enough to ride along).
+  Ask the user when it is genuinely unclear which of the two paths fits.
 
 ### Step 2 — implement, test, style
 
@@ -139,4 +142,4 @@ Do not run `gh pr merge`, `git push --force`, `git push --force-with-lease`, `gh
 
 ## When this skill applies
 
-Apply this workflow for every entry in `docs/ISSUES.md` and every filed GitHub issue. For trivial out-of-band fixes (typos, comment-only edits) the branch + commit + ISSUES cleanup (if applicable) + hand-off steps still apply, but steps 2 and 3 collapse to a single read-through.
+Apply this workflow for every entry in `docs/ISSUES.md` and every filed GitHub issue. Trivial out-of-band fixes (typos, comment-only edits, small skill tweaks) skip the branching and PR steps entirely — see step 1 for where they land — and steps 2 and 3 collapse to a single read-through.

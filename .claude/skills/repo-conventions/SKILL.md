@@ -35,7 +35,8 @@ description: Repository layout and naming conventions. Use to find or place file
 ## Code comments
 
 - Describe **architecture, design goals, and *why***, not *how*. The code shows the "how"; comments earn their keep by explaining the choice, the invariant, or the rejected alternative.
-- Keep them **concise in content** — a tight intent comment beats a paragraph re-narrating the code below. That is not a license to wrap every line at ~72 columns; use the same **120-column** limit as code (see the `format` skill). Run `clang-format -i` on touched files so comment reflow stays consistent.
+- **Cut anything the code, the file name, or the signature already says.** A tight intent comment beats a paragraph re-narrating the code below. "Concise" applies to *content*, not line length: still wrap at the same **120-column** limit as code (see the `format` skill) and run `clang-format -i` on touched files so reflow stays consistent.
+- **Drop anything that ages badly or restates universal hygiene.** In particular: forward-looking promises about future milestones (`"will be revisited by the Paddle-controls milestone"`), generic C++ admonitions that apply everywhere (`"do not hard-code these outside this header"`), parentheticals that re-state the surrounding context (`"Static-playfield tuning constants"` inside `Playfield.h`), and `(see foo.cpp)` cross-references the reader can grep for in two seconds. Keep the comment if it explains *this* choice or invariant; cut it if it just states a general best practice.
 - Skip obvious comments. `// Returns the elapsed time in seconds` above `double secondsBetween(...)` is noise — the signature already says it.
 - Public-API contract notes (preconditions, defensive behaviour, ownership) are fine in headers when they document something the signature itself cannot.
 

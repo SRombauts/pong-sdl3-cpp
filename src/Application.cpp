@@ -3,6 +3,8 @@
 #include "ClockSdlTicks.h"
 #include "FrameTiming.h"
 #include "Playfield.h"
+#include "PlayfieldLayout.h"
+#include "PlayfieldRenderer.h"
 #include "RandomSourceMt19937.h"
 
 #include <SDL3/SDL.h>
@@ -11,11 +13,20 @@
 #include <iostream>
 #include <utility>
 
-Application::Application(std::string title, int width, int height, std::unique_ptr<IClock> clock,
+Application::Application(std::string title,
+                         int width,
+                         int height,
+                         std::unique_ptr<IClock> clock,
                          std::unique_ptr<IRandomSource> random)
     : m_title(std::move(title)), m_width(width), m_height(height),
       m_clock(clock ? std::move(clock) : std::make_unique<ClockSdlTicks>()),
-      m_random(random ? std::move(random) : std::make_unique<RandomSourceMt19937>(makeNonDeterministicSeed()))
+      m_random(random ? std::move(random) : std::make_unique<RandomSourceMt19937>(makeNonDeterministicSeed())),
+      m_playfield(std::make_unique<PlayfieldRenderer>(Playfield::kLogicalWidth,
+                                                      Playfield::kLogicalHeight,
+                                                      Playfield::kCentreDashSegmentCount,
+                                                      Playfield::kCentreDashWidth,
+                                                      Playfield::kCentreDashHeight,
+                                                      Playfield::kCentreDashGap))
 {
 }
 
@@ -86,7 +97,9 @@ bool Application::init()
     // aspect differs. INTEGER_SCALE is deferred until a pixel-perfect rendering need actually appears. Failure here is
     // non-fatal -- the window still presents, just without the logical mapping -- but every gameplay layout assumes it
     // succeeded, so surface the error loudly.
-    if (!SDL_SetRenderLogicalPresentation(m_renderer, Playfield::kLogicalWidth, Playfield::kLogicalHeight,
+    if (!SDL_SetRenderLogicalPresentation(m_renderer,
+                                          Playfield::kLogicalWidth,
+                                          Playfield::kLogicalHeight,
                                           SDL_LOGICAL_PRESENTATION_LETTERBOX))
     {
         std::cerr << "SDL_SetRenderLogicalPresentation failed (non-fatal): " << SDL_GetError() << std::endl;
@@ -176,5 +189,32 @@ void Application::render()
 {
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
     SDL_RenderClear(m_renderer);
+
+    // White-on-black is the only palette the static playfield needs.
+    SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+
+    const SDL_FRect leftPaddle = PlayfieldLayout::leftPaddle(Playfield::kLogicalWidth,
+                                                             Playfield::kLogicalHeight,
+                                                             Playfield::kPaddleHalfWidth,
+                                                             Playfield::kPaddleHalfHeight,
+                                                             Playfield::kWallInset);
+    const SDL_FRect rightPaddle = PlayfieldLayout::rightPaddle(Playfield::kLogicalWidth,
+                                                               Playfield::kLogicalHeight,
+                                                               Playfield::kPaddleHalfWidth,
+                                                               Playfield::kPaddleHalfHeight,
+                                                               Playfield::kWallInset);
+    const SDL_FRect ball =
+        PlayfieldLayout::ball(Playfield::kLogicalWidth, Playfield::kLogicalHeight, Playfield::kBallHalfSize);
+    SDL_RenderFillRect(m_renderer, &leftPaddle);
+    SDL_RenderFillRect(m_renderer, &rightPaddle);
+    SDL_RenderFillRect(m_renderer, &ball);
+
+    // Static-chrome draw: the dash list was computed once at construction; no per-frame layout math here.
+    m_playfield->draw(m_renderer);
+
+    // Restore the clear colour so the next frame's SDL_RenderClear() starts from black even if a future caller forgets
+    // to set it explicitly.
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+
     SDL_RenderPresent(m_renderer);
 }

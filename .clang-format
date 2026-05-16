@@ -37,4 +37,27 @@ AccessModifierOffset: -4
 # flush; this also matches how the SDL3 forward declarations and
 # member fields read in `src/Application.h`.
 PointerAlignment: Left
+
+# Function arguments / parameters layout: all on one line when they fit
+# inside `ColumnLimit`, otherwise one per line aligned after the open
+# paren. The middle ground (LLVM default: pack as many as fit per line)
+# is rejected because the resulting "ragged" wrap is harder to scan in
+# a diff and shifts every continuation line when an argument is added
+# or renamed. The "all-on-next-line block" fallback is also disabled so
+# the only two shapes the formatter produces are "one line" and "one
+# argument per line".
+BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+
+# When a signature is too long for one line, clang-format weighs two
+# break points: after the return type, or after the open paren (which,
+# combined with the four bin-packing switches above, becomes one
+# parameter per line). LLVM's default penalty (60) for "return type on
+# its own line" lets it win against one-per-line for borderline cases,
+# producing a shape this project does not want. Push the penalty up so
+# the formatter always prefers breaking after the open paren and keeps
+# the two-shape rule above intact.
+PenaltyReturnTypeOnItsOwnLine: 10000
 ...
