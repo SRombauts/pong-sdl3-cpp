@@ -333,10 +333,17 @@ Goal: harden the project once the playable MVP is finished. Optional, can be tac
 Scope:
 
 - Package release artifacts on tag pushes (a zip per platform with the executable and any required runtime libraries).
-- Add code coverage on Linux + GCC using `gcovr` or `llvm-cov` and publish the report as a CI artifact.
+- Add line coverage on Linux + GCC using `gcovr`, uploaded to a hosted service (Codecov) and surfaced as a badge in `README.md`:
+  - Gate instrumentation behind a CMake option (off by default), e.g. `PONG_ENABLE_COVERAGE`, that appends GCC's `--coverage` (alias for `-fprofile-arcs -ftest-coverage`) to the compile and link flags of both `pong-sdl3-cpp` and `pong-sdl3-cpp-tests`. Match the existing per-target style: duplicate the flag block alongside the current `target_compile_options(... -Wall -Wextra ...)` in `CMakeLists.txt` and `tests/CMakeLists.txt`; promote to an `add_coverage_flags(<target>)` helper only if it grows.
+  - Add a `coverage` job to `.github/workflows/build.yml`, `runs-on: ubuntu-latest`, kept separate from the cross-platform `build` matrix so the matrix stays clean. The job installs the same SDL3 transitive dev-headers, configures with `-DCMAKE_BUILD_TYPE=Debug -DPONG_ENABLE_COVERAGE=ON`, builds, runs `ctest --output-on-failure`, then runs `gcovr --lcov coverage.lcov --filter src/ --exclude build/_deps --exclude tests` so the report measures project sources only. The `--exclude build/_deps` filter is mandatory: without it the SDL3 source tree pulled in via `FetchContent` dominates the percentage and makes the number meaningless.
+  - Upload `coverage.lcov` with `codecov/codecov-action@v4` (no token required for public GitHub repos on GitHub-hosted runners) and add a Codecov badge to `README.md` alongside the existing Windows / Ubuntu / macOS CI badges.
+  - Add a thin `scripts/coverage.sh` wrapper (Linux-only, matching the existing `scripts/build.sh` style) so contributors can reproduce the CI run locally with one command.
+  - Start in report-only mode: no `--fail-under-line` threshold. Revisit once a few weeks of data are available.
+  - Local Windows coverage is **out of scope** for this milestone. The MSVC build path is small (mostly conditional `#ifdef _WIN32` blocks around DLL handling) and contributors rely on CI for the coverage number. If MSVC-only branches grow non-trivial, revisit with LLVM source-based coverage (`-fprofile-instr-generate -fcoverage-mapping` via `clang-cl`) so a single pipeline runs on every OS.
 - Add a basic static-analysis step in CI (`clang-tidy` on Linux, optionally MSVC `/analyze` on Windows). Treat findings as informational at first.
 
 Acceptance criteria:
 
 - Tag pushes produce downloadable artifacts on every CI platform that is green.
-- A coverage report and a static-analysis report are produced by CI, even if not enforced.
+- The coverage CI job runs on every push and pull request to `main`, uploads an LCOV report to Codecov, and a Codecov line-coverage badge is visible in `README.md`.
+- A static-analysis report is produced by CI, even if not enforced.
