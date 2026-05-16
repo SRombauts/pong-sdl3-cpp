@@ -22,47 +22,6 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 > The following deliverables turn the black SDL3 window into a recognisable Pong layout: a fixed logical resolution with letterboxed scaling, the static playfield elements (paddles, ball, dashed centre line) driven by pure layout helpers, and a placeholder score rendered via a deliberately chosen text-rendering approach that the menus milestone will reuse. Each entry below is intended to map to one pull request.
 
-### Add the playfield layout helpers and draw the static paddles, ball, and centre line
-
-#### Description
-
-Introduce the pure layout logic that places the two paddles, the ball, and the dashed centre line inside the playfield, then wire the renderer to draw them. The layout helpers stay free of any SDL include and are unit-tested first (TDD); the renderer is the only consumer that touches SDL.
-
-This issue produces the first frame that visibly resembles Pong.
-
-#### Tasks
-
-- Introduce a minimal SDL-free rectangle type (`struct Rect { float x; float y; float w; float h; };`) in a new header (e.g. `src/Geometry.h`). The pure helpers below return `Rect` values; the renderer converts to `SDL_FRect` at the call site (a one-line copy) so SDL never leaks into the layout layer.
-- Add `src/PlayfieldLayout.{h,cpp}` exposing pure free functions:
-  - `Rect defaultLeftPaddle(int playfieldWidth, int playfieldHeight, float paddleHalfWidth, float paddleHalfHeight, float wallInset)` — centred vertically, inset from the left wall by `wallInset` logical pixels.
-  - `Rect defaultRightPaddle(...)` — mirrored on the right.
-  - `Rect defaultBall(int playfieldWidth, int playfieldHeight, float ballHalfSize)` — centred on both axes.
-  - `std::array<Rect, N> centreDashSegments(int playfieldHeight, int segmentCount, float dashWidth, float dashHeight, float gap)` — or an out-vector if `segmentCount` is configurable. Document the convention clearly: segments are evenly distributed top-to-bottom, the first dash starts at `y = gap/2` (so the dashed line is visually symmetric about the playfield centre), and dashes are horizontally centred on `playfieldWidth/2`.
-- Pick small tunable constants for paddle size, ball size, dash size, wall inset, and segment count. Put them in `Playfield.h` next to the resolution constants so all gameplay tuning lives in one place.
-- Extend `Application::render()` to fill the four shapes plus each dash with white (`SDL_SetRenderDrawColor(..., 255, 255, 255, 255)`), then restore the black clear colour. Keep the call sites short — the math lives in the helpers.
-- Add `tests/PlayfieldLayoutTest.cpp` covering:
-  - Default paddle positions: vertical centring (the paddle's vertical midpoint equals `playfieldHeight / 2`), horizontal inset on both sides, left/right symmetry across the vertical midline.
-  - Default ball position: centred on both axes (within sub-pixel tolerance).
-  - Dashed line — total covered length matches `segmentCount * dashHeight`, gaps respect the documented convention, first and last segment positions are inside the playfield, and the line is centred on `playfieldWidth/2`.
-  - Defensive cases for the dashed line: `segmentCount == 1` returns a single centred dash; `segmentCount == 0` returns an empty range (no crash, no negative dimensions).
-  - A paddle larger than the playfield (defensive, mirrors the future `Paddle controls` milestone's clamping concerns): the helper still returns a usable rect rather than asserting or producing NaN.
-
-#### Acceptance criteria
-
-- The window shows two white static paddles at the left and right walls, a white static ball at the centre, and a vertical dashed white centre line — all at classic Pong positions.
-- `PlayfieldLayout.h` includes no SDL header, and the test target compiles `PlayfieldLayoutTest.cpp` without linking against SDL symbols.
-- All new unit tests pass locally and in CI on Windows, Linux, and macOS.
-- `clang-format --dry-run --Werror` stays clean on all new and edited C++ files.
-- The previous milestone's tests (`secondsBetween`, `RandomSourceMt19937`, `Application` constructor and `tickFrameClock`) still pass unchanged.
-
-#### Notes
-
-- Constants are placeholders; tuning is owned by later milestones (`Paddle controls`, `Ball and collisions`). Resist the urge to bikeshed exact pixel sizes here — any reasonable arcade-style proportions are fine for the static frame.
-- If `std::array` ends up awkward for `centreDashSegments` (because `segmentCount` is a runtime value), prefer `std::vector` and accept the heap allocation — this code runs once per frame at low N and is far from a hot path.
-- Drawing white rectangles is intentionally crude: this milestone is "static playfield", not "polish". Any cosmetic refinement (anti-aliasing, gradients) belongs to the `Audio and polish` milestone.
-
----
-
 ### Pick a text-rendering approach and draw the placeholder score
 
 #### Description
