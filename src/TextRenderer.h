@@ -56,4 +56,18 @@ constexpr int kGlyphPixelRows = 7;
                                                     float pixelSize,
                                                     float glyphSpacing);
 
+// Thin SDL boundary: computes the rects via textGlyphRects() and issues one SDL_RenderFillRect per rect. Does not
+// touch the renderer's draw-color state, so the caller can set white once and draw paddles, ball, dashes, and text
+// under the same setup (the same convention PlayfieldRenderer::draw follows).
+//
+// Not directly unit-tested: its behavior reduces to textGlyphRects() (covered by TextRendererTest) plus the SDL call,
+// which would require an offscreen renderer harness to exercise meaningfully. Keep the function body trivial enough
+// that visual inspection is the assurance.
+void drawText(SDL_Renderer* renderer,
+              std::string_view text,
+              float originX,
+              float originY,
+              float pixelSize,
+              float glyphSpacing);
+
 } // namespace TextRenderer

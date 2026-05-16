@@ -118,4 +118,22 @@ std::vector<SDL_FRect> textGlyphRects(std::string_view text,
     return rects;
 }
 
+void drawText(SDL_Renderer* renderer,
+              std::string_view text,
+              float originX,
+              float originY,
+              float pixelSize,
+              float glyphSpacing)
+{
+    if (renderer == nullptr)
+    {
+        return;
+    }
+    const std::vector<SDL_FRect> rects = textGlyphRects(text, originX, originY, pixelSize, glyphSpacing);
+    for (const SDL_FRect& rect : rects)
+    {
+        SDL_RenderFillRect(renderer, &rect);
+    }
+}
+
 } // namespace TextRenderer
