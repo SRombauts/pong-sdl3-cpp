@@ -46,6 +46,7 @@ These anchors operationalize the steps above without changing them.
 
 ### Step 2 — implement, test, style
 
+- **Plan the implementation as a sequence of atomic intermediate steps up front**, before touching code, and surface the plan to the user (the agent's todo list is a fine vehicle when the task spans more than two or three commits). Each step in the plan becomes one commit in step 4, so the reviewer can read the branch one commit at a time and accept or push back on each slice independently. Typical cut points: a new data structure, a pure helper, the SDL/IO wiring, the call-site integration, the documentation/cleanup pass — each landing with its own focused tests. Revisit the plan when reality diverges; do not retroactively rationalise a monolithic diff.
 - Use `scripts/build.ps1` (Windows) or `scripts/build.sh` (Linux/macOS); see the `build` skill. A non-zero exit code means the build failed — surface it, don't retry blindly.
 - Run the test suite with `scripts/test.ps1` (Windows) or `scripts/test.sh` (Linux/macOS). The raw `ctest --test-dir build --output-on-failure` invocation is also fine. Add or extend tests under `tests/` for any new logic.
 - Verify configure-time toggles still work when relevant (e.g. `-DBUILD_TESTING=OFF`).
@@ -65,7 +66,7 @@ Before committing, re-read the diff with these checks:
 
 - Stage only the files that belong to the task.
 - Write a short, imperative commit description (one line is usually enough). Match the style of recent commits (`git log --oneline`).
-- Multiple commits per task are fine — one task = one branch, not one commit. Each commit should be a coherent, reviewable slice of the task.
+- **Land the task as the sequence of atomic commits planned in step 2** — one task = one branch, not one commit. Each commit must be a self-contained, independently reviewable slice (a data structure, a pure helper, the wiring, the call-site integration, tests, …) so the reviewer can step through the branch one commit at a time and judge each in isolation. A single monolithic commit for anything beyond a one-line fix is a smell; if the plan from step 2 produced one, revisit the plan rather than the commit boundary.
 - Do not amend without explicit user request.
 - A plain `git push` of the task branch (step 6) is part of the workflow. Force-pushes (`--force`, `--force-with-lease`) and any rewrite of already-pushed history still require an explicit user request — see step 4b.
 
