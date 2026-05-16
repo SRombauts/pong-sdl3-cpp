@@ -4,9 +4,6 @@
 
 #include <cstdint>
 
-// Written test-first: an earlier commit shipped these against a wrong
-// stub, the next commit replaced it. See the red/green pair in git log.
-
 TEST_CASE("secondsBetween: equal timestamps yield zero")
 {
     CHECK(secondsBetween(0ULL, 0ULL) == doctest::Approx(0.0));

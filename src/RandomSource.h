@@ -1,19 +1,13 @@
 #pragma once
 
-// Minimal random-number interface injected into Application. Modeled on
-// IClock: the surface stays intentionally small (typed range helpers
-// only) so test fakes are trivial and call sites read like English.
+// Minimal random-number interface injected into Application. Modeled on IClock: a small surface (typed range helpers
+// only) keeps fakes trivial and call sites readable.
 //
-// We deliberately do NOT expose a generic next() returning a raw
-// uint32_t -- gameplay code should call a typed range helper, which
-// keeps the call sites readable and avoids re-implementing range
-// reduction at every consumer.
+// No generic next() returning a raw uint32_t -- gameplay code calls a typed range helper to keep call sites readable
+// and avoid re-implementing range reduction at every consumer.
 //
-// Implementations: RandomSourceMt19937 (production, std::mt19937 seeded
-// via constructor argument; a non-deterministic seed helper lives next
-// to it for production use). Tests can either pin the seed on
-// RandomSourceMt19937 directly or, once consumers exist, swap in a
-// scripted fake.
+// Implementations: RandomSourceMt19937 (production, std::mt19937 seeded via constructor; makeNonDeterministicSeed()
+// supplies an entropy-seeded default). Tests pin the seed directly or swap in a scripted fake.
 class IRandomSource
 {
 public:
@@ -25,11 +19,9 @@ public:
     IRandomSource(IRandomSource&&) = delete;
     IRandomSource& operator=(IRandomSource&&) = delete;
 
-    // Uniform integer in the inclusive range [lo, hi]. Precondition:
-    // lo <= hi (matches std::uniform_int_distribution).
+    // Uniform integer in the inclusive range [lo, hi]. Precondition: lo <= hi (matches std::uniform_int_distribution).
     virtual int intInRange(int lo, int hi) = 0;
 
-    // Uniform double in the half-open range [lo, hi). Precondition:
-    // lo <= hi (matches std::uniform_real_distribution).
+    // Uniform double in the half-open range [lo, hi). Precondition: lo <= hi (matches std::uniform_real_distribution).
     virtual double doubleInRange(double lo, double hi) = 0;
 };

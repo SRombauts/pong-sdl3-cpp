@@ -32,8 +32,7 @@ Application::Application(std::string title,
 
 Application::~Application()
 {
-    // Tear down in reverse construction order. Each guard makes the
-    // destructor safe to call after a failed or partial init().
+    // Tear down in reverse construction order; each guard keeps the destructor safe after a failed or partial init().
     if (m_renderer != nullptr)
     {
         SDL_DestroyRenderer(m_renderer);
@@ -91,12 +90,10 @@ bool Application::init()
     }
     std::cout << "SDL_CreateRenderer OK (driver='" << SDL_GetRendererName(m_renderer) << "')" << std::endl;
 
-    // Fix the gameplay coordinate system to a stable logical resolution and let SDL scale it to the window.
-    // LETTERBOX is picked over STRETCH (which would distort the aspect ratio) and OVERSCAN (which would crop the
-    // playfield); the user keeps the full 4:3 playable area with black bars on the sides or top/bottom when the window
-    // aspect differs. INTEGER_SCALE is deferred until a pixel-perfect rendering need actually appears. Failure here is
-    // non-fatal -- the window still presents, just without the logical mapping -- but every gameplay layout assumes it
-    // succeeded, so surface the error loudly.
+    // Pin gameplay coordinates to a stable logical resolution; SDL scales them to the window. LETTERBOX over STRETCH
+    // (distorts aspect ratio) and OVERSCAN (crops the playfield): the 4:3 playable area stays intact with black bars
+    // where the window aspect differs. INTEGER_SCALE waits for a pixel-perfect need. Failure is non-fatal -- the window
+    // still presents without the logical mapping -- but every layout assumes success, so log loudly.
     if (!SDL_SetRenderLogicalPresentation(m_renderer,
                                           Playfield::kLogicalWidth,
                                           Playfield::kLogicalHeight,
@@ -110,8 +107,8 @@ bool Application::init()
                   << ", LETTERBOX) OK" << std::endl;
     }
 
-    // V-Sync failure is non-fatal: the loop runs uncapped. A manual cap
-    // can land later if a use case (headless CI, broken vsync) demands it.
+    // V-Sync failure is non-fatal: the loop runs uncapped. A manual cap can land later if a use case (headless CI,
+    // broken vsync) demands it.
     if (!SDL_SetRenderVSync(m_renderer, 1))
     {
         std::cerr << "SDL_SetRenderVSync(1) failed (non-fatal, running uncapped): " << SDL_GetError() << std::endl;
@@ -121,8 +118,7 @@ bool Application::init()
         std::cout << "SDL_SetRenderVSync(1) OK" << std::endl;
     }
 
-    // Seed the cache so the first tickFrameClock() returns a real frame
-    // dt, not the whole pre-init duration.
+    // Seed the cache so the first tickFrameClock() returns a real frame dt, not the whole pre-init duration.
     m_lastTickNs = m_clock->now();
 
     return true;
@@ -153,13 +149,8 @@ double Application::tickFrameClock()
 
 bool Application::pollEvents()
 {
-    // Pump pending SDL events. Returns false on the first quit signal
-    // (window close or Escape) without finishing the drain -- the loop
-    // is exiting anyway so unread events would be discarded by SDL_Quit
-    // shortly. Returns true once the queue is empty.
-    //
-    // Future input handling (paddle controls, menu navigation) will
-    // route through here without changing the call site in run().
+    // Pump SDL events. Returns false on the first quit signal (window close or Escape) without draining the queue;
+    // unread events would be discarded by SDL_Quit shortly. Returns true once the queue is empty.
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -179,9 +170,7 @@ bool Application::pollEvents()
 
 void Application::update(double dtSeconds)
 {
-    // Gameplay state updates will land here in subsequent milestones. The
-    // dt is already wired through so future code can consume it without
-    // touching the main loop.
+    // Placeholder until gameplay state lands; the dt is wired through so future code can consume it.
     (void)dtSeconds;
 }
 
@@ -212,8 +201,7 @@ void Application::render()
     // Static-chrome draw: the dash list was computed once at construction; no per-frame layout math here.
     m_playfield->draw(m_renderer);
 
-    // Restore the clear colour so the next frame's SDL_RenderClear() starts from black even if a future caller forgets
-    // to set it explicitly.
+    // Restore the clear colour so the next SDL_RenderClear() starts from black even if a future caller forgets it.
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
     SDL_RenderPresent(m_renderer);

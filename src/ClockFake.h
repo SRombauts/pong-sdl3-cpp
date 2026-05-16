@@ -4,8 +4,8 @@
 
 #include <cstdint>
 
-// Test-only IClock returning scripted values. Lives in ${PONG_SRC} so
-// any TEST_CASE can use it without extra CMake plumbing.
+// Test-only IClock returning scripted values. Lives in ${PONG_SRC} so any TEST_CASE can use it without extra CMake
+// plumbing.
 class ClockFake : public IClock
 {
 public:

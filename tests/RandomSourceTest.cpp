@@ -4,10 +4,8 @@
 
 #include <cstdint>
 
-// Determinism guard: two instances seeded with the same value must
-// produce byte-identical sequences. This is the contract gameplay
-// tests will rely on to pin a serve angle or AI noise to a known
-// outcome.
+// Determinism guard: two instances seeded with the same value must produce byte-identical sequences. This is the
+// contract gameplay tests will rely on to pin a serve angle or AI noise to a known outcome.
 TEST_CASE("RandomSourceMt19937: same seed yields the same sequence on independent instances")
 {
     constexpr std::uint64_t seed = 0xDEADBEEFCAFEBABEULL;
@@ -24,11 +22,9 @@ TEST_CASE("RandomSourceMt19937: same seed yields the same sequence on independen
     }
 }
 
-// intInRange contract: inclusive on both ends, never escapes the
-// requested band. The bounds-hit checks turn the range size down to
-// nine values so 1000 samples are statistically certain to land on
-// both extremes; if either flag never flips, the implementation is
-// almost certainly off-by-one.
+// intInRange contract: inclusive on both ends, never escapes the requested band. The bounds-hit checks turn the
+// range size down to nine values so 1000 samples are statistically certain to land on both extremes; if either
+// flag never flips, the implementation is almost certainly off-by-one.
 TEST_CASE("RandomSourceMt19937::intInRange respects inclusive bounds")
 {
     RandomSourceMt19937 rng(42);
@@ -54,8 +50,7 @@ TEST_CASE("RandomSourceMt19937::intInRange respects inclusive bounds")
     CHECK(sawHi);
 }
 
-// intInRange degenerate case: lo == hi must always return lo. A
-// regression here would betray a faulty range translation.
+// intInRange degenerate case: lo == hi must always return lo; a regression here betrays a faulty range translation.
 TEST_CASE("RandomSourceMt19937::intInRange with lo == hi returns the constant")
 {
     RandomSourceMt19937 rng(42);
@@ -65,9 +60,8 @@ TEST_CASE("RandomSourceMt19937::intInRange with lo == hi returns the constant")
     }
 }
 
-// doubleInRange contract: half-open. The upper bound must NEVER
-// be returned. A loose `<=` implementation would silently break
-// downstream code that uses the sample as an array index.
+// doubleInRange contract: half-open. The upper bound must NEVER be returned. A loose `<=` implementation would
+// silently break downstream code that uses the sample as an array index.
 TEST_CASE("RandomSourceMt19937::doubleInRange respects half-open bounds")
 {
     RandomSourceMt19937 rng(42);
@@ -81,10 +75,8 @@ TEST_CASE("RandomSourceMt19937::doubleInRange respects half-open bounds")
     }
 }
 
-// Non-deterministic helper: two consecutive calls must produce
-// distinct sequences. We compare only the first few values --
-// statistical, not strict; with 32+ bits of entropy per seed the
-// probability of an accidental match is vanishingly small.
+// Non-deterministic helper: two consecutive calls must produce distinct sequences. Statistical, not strict; with
+// 32+ bits of entropy per seed the probability of an accidental match is vanishingly small.
 TEST_CASE("makeNonDeterministicRandomSource produces different sequences across calls")
 {
     auto a = makeNonDeterministicRandomSource();
