@@ -23,7 +23,11 @@ public:
     //
     // No SDL renderer is required at construction; only draw() touches SDL. Tests can therefore inspect centreDashes()
     // without bringing up SDL video.
-    PlayfieldRenderer(int playfieldWidth, int playfieldHeight, int segmentCount, float dashWidth, float dashHeight,
+    PlayfieldRenderer(int playfieldWidth,
+                      int playfieldHeight,
+                      int segmentCount,
+                      float dashWidth,
+                      float dashHeight,
                       float gap);
 
     // Issue one SDL_RenderFillRect per cached dash. Does not touch the renderer's draw-colour state, so the caller can

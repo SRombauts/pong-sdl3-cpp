@@ -3,7 +3,10 @@
 namespace PlayfieldLayout
 {
 
-SDL_FRect leftPaddle(int playfieldWidth, int playfieldHeight, float paddleHalfWidth, float paddleHalfHeight,
+SDL_FRect leftPaddle(int playfieldWidth,
+                     int playfieldHeight,
+                     float paddleHalfWidth,
+                     float paddleHalfHeight,
                      float wallInset)
 {
     (void)playfieldWidth;
@@ -15,7 +18,10 @@ SDL_FRect leftPaddle(int playfieldWidth, int playfieldHeight, float paddleHalfWi
     return rect;
 }
 
-SDL_FRect rightPaddle(int playfieldWidth, int playfieldHeight, float paddleHalfWidth, float paddleHalfHeight,
+SDL_FRect rightPaddle(int playfieldWidth,
+                      int playfieldHeight,
+                      float paddleHalfWidth,
+                      float paddleHalfHeight,
                       float wallInset)
 {
     SDL_FRect rect{};
@@ -36,8 +42,12 @@ SDL_FRect ball(int playfieldWidth, int playfieldHeight, float ballHalfSize)
     return rect;
 }
 
-std::vector<SDL_FRect> centreDashSegments(int playfieldWidth, int playfieldHeight, int segmentCount, float dashWidth,
-                                          float dashHeight, float gap)
+std::vector<SDL_FRect> centreDashSegments(int playfieldWidth,
+                                          int playfieldHeight,
+                                          int segmentCount,
+                                          float dashWidth,
+                                          float dashHeight,
+                                          float gap)
 {
     std::vector<SDL_FRect> dashes;
     if (segmentCount <= 0)

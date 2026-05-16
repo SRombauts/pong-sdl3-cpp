@@ -20,7 +20,10 @@ class PlayfieldRenderer;
 class Application
 {
 public:
-    Application(std::string title, int width, int height, std::unique_ptr<IClock> clock = nullptr,
+    Application(std::string title,
+                int width,
+                int height,
+                std::unique_ptr<IClock> clock = nullptr,
                 std::unique_ptr<IRandomSource> random = nullptr);
     ~Application();
 

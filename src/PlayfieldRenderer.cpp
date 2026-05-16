@@ -2,10 +2,18 @@
 
 #include "PlayfieldLayout.h"
 
-PlayfieldRenderer::PlayfieldRenderer(int playfieldWidth, int playfieldHeight, int segmentCount, float dashWidth,
-                                     float dashHeight, float gap)
-    : m_centreDashes(PlayfieldLayout::centreDashSegments(playfieldWidth, playfieldHeight, segmentCount, dashWidth,
-                                                         dashHeight, gap))
+PlayfieldRenderer::PlayfieldRenderer(int playfieldWidth,
+                                     int playfieldHeight,
+                                     int segmentCount,
+                                     float dashWidth,
+                                     float dashHeight,
+                                     float gap)
+    : m_centreDashes(PlayfieldLayout::centreDashSegments(playfieldWidth,
+                                                         playfieldHeight,
+                                                         segmentCount,
+                                                         dashWidth,
+                                                         dashHeight,
+                                                         gap))
 {
 }
 

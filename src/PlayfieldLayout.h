@@ -14,11 +14,17 @@ namespace PlayfieldLayout
 {
 
 // Centred vertically, with the paddle's left edge inset by `wallInset` logical pixels from the left wall.
-SDL_FRect leftPaddle(int playfieldWidth, int playfieldHeight, float paddleHalfWidth, float paddleHalfHeight,
+SDL_FRect leftPaddle(int playfieldWidth,
+                     int playfieldHeight,
+                     float paddleHalfWidth,
+                     float paddleHalfHeight,
                      float wallInset);
 
 // Mirror of leftPaddle on the right wall (same vertical centring, same inset measured from the right wall).
-SDL_FRect rightPaddle(int playfieldWidth, int playfieldHeight, float paddleHalfWidth, float paddleHalfHeight,
+SDL_FRect rightPaddle(int playfieldWidth,
+                      int playfieldHeight,
+                      float paddleHalfWidth,
+                      float paddleHalfHeight,
                       float wallInset);
 
 // Ball centred on both axes of the playfield.
@@ -39,7 +45,11 @@ SDL_FRect ball(int playfieldWidth, int playfieldHeight, float ballHalfSize);
 //
 // The `gap` parameter is the documented vertical spacing *between* consecutive dashes; the caller picks it (typically
 // from Playfield::kCentreDashGap) so the helper does not need to know the production tuning.
-std::vector<SDL_FRect> centreDashSegments(int playfieldWidth, int playfieldHeight, int segmentCount, float dashWidth,
-                                          float dashHeight, float gap);
+std::vector<SDL_FRect> centreDashSegments(int playfieldWidth,
+                                          int playfieldHeight,
+                                          int segmentCount,
+                                          float dashWidth,
+                                          float dashHeight,
+                                          float gap);
 
 } // namespace PlayfieldLayout

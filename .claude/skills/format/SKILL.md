@@ -17,6 +17,30 @@ When writing or editing comments by hand, wrap prose to the same **120-column** 
 
 "Short comment" in `repo-conventions` means **few words and no noise**, not artificially narrow lines.
 
+## Function arguments and parameters
+
+Two shapes are allowed, picked by line length:
+
+1. **All on one line**, when the call or declaration fits inside `ColumnLimit: 120`:
+
+    ```cpp
+    SDL_FRect ball(int playfieldWidth, int playfieldHeight, float ballHalfSize);
+    ```
+
+2. **One per line, aligned after the open paren**, as soon as the one-line form would overflow:
+
+    ```cpp
+    SDL_FRect leftPaddle(int playfieldWidth,
+                         int playfieldHeight,
+                         float paddleHalfWidth,
+                         float paddleHalfHeight,
+                         float wallInset);
+    ```
+
+The intermediate "pack as many as fit, wrap the rest" shape (LLVM's default `BinPackParameters: true`) is deliberately rejected: the resulting ragged wrap is harder to scan in a diff and shifts every continuation line whenever an argument is added or renamed. The "all arguments on the next line as a block" fallback is also disabled, so these are the only two shapes `clang-format` produces.
+
+This is enforced by `.clang-format` via `BinPackArguments: false`, `BinPackParameters: false`, `AllowAllArgumentsOnNextLine: false`, `AllowAllParametersOfDeclarationOnNextLine: false`. Do not hand-format wrapped argument lists; let the formatter pick the shape from those four switches.
+
 ## Apply formatting in place
 
 ```bash
