@@ -9,6 +9,14 @@ description: Format and verify C/C++ source style with clang-format.
 
 Do not invent formatting choices; let `clang-format` arbitrate.
 
+## Line length (120 columns)
+
+`ColumnLimit: 120` applies to **code and comments**. LLVM's default `ReflowComments: Always` is in effect, so `clang-format -i` will reflow `//` and `/* */` comment lines toward that limit when it can.
+
+When writing or editing comments by hand, wrap prose to the same **120-column** limit as code — do not use a narrower ~72-column habit. Account for leading indentation and the `// ` prefix (e.g. four spaces + `// ` leaves ~113 characters of text on a typical indented line in a `.cpp` function body).
+
+"Short comment" in `repo-conventions` means **few words and no noise**, not artificially narrow lines.
+
 ## Apply formatting in place
 
 ```bash

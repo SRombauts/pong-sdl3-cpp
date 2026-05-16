@@ -22,39 +22,6 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 > The following deliverables turn the black SDL3 window into a recognisable Pong layout: a fixed logical resolution with letterboxed scaling, the static playfield elements (paddles, ball, dashed centre line) driven by pure layout helpers, and a placeholder score rendered via a deliberately chosen text-rendering approach that the menus milestone will reuse. Each entry below is intended to map to one pull request.
 
-### Set the logical playfield resolution and document the coordinate convention
-
-#### Description
-
-Pong's gameplay is defined in *logical* pixels, decoupled from the user's window size. SDL3's `SDL_SetRenderLogicalPresentation` lets the renderer keep a fixed aspect ratio and scale the playfield to any window. Pick a logical resolution (start with 800x600 to match the current default window size), wire it through `Application`, and document the coordinate convention so every later gameplay file can rely on a single, stable frame of reference.
-
-This is the smallest unit in the milestone on purpose: it locks in the architectural decision (logical resolution + presentation mode) before any layout or rendering code is added on top.
-
-#### Tasks
-
-- Add `src/Playfield.h` (header-only; `constexpr` is enough) exposing the logical width and height as named constants (e.g. `kLogicalWidth = 800`, `kLogicalHeight = 600`) and a header-level comment describing the coordinate convention:
-  - Origin at the top-left of the playfield.
-  - +X to the right, +Y downward (matches SDL conventions).
-  - All gameplay coordinates and sizes are expressed in logical pixels; the renderer scales them to the window.
-- Call `SDL_SetRenderLogicalPresentation(m_renderer, kLogicalWidth, kLogicalHeight, SDL_LOGICAL_PRESENTATION_LETTERBOX)` once in `Application::init()`, after `SDL_CreateRenderer` succeeds and before `SDL_SetRenderVSync`. Log success or failure following the existing pattern in that function. Pick `LETTERBOX` deliberately: `STRETCH` would distort the playfield aspect ratio and `OVERSCAN` would crop it; record the choice in a short comment next to the call.
-- Append the new header to `PONG_INC` in the top-level `CMakeLists.txt` so it appears in IDE-generator projects (mirrors the existing pattern for the other production headers).
-- Update the `README.md` "Build" or "Roadmap" section to mention the logical resolution and link to `Playfield.h` for the coordinate convention (one short sentence is enough).
-
-#### Acceptance criteria
-
-- The window opens at 800x600 and still presents a black frame each tick (no regression from the previous milestone).
-- Resizing or maximising the window keeps the playfield aspect ratio intact: the playable area stays a 4:3 letterbox, with black bars on the sides or top/bottom when the window aspect differs.
-- `Playfield.h` declares `kLogicalWidth`/`kLogicalHeight` as `constexpr` and documents the coordinate convention at the top of the file.
-- All existing unit tests still pass on Windows, Linux, and macOS; `clang-format --dry-run --Werror` stays clean on the new and edited files.
-
-#### Notes
-
-- No new unit tests are needed: this issue introduces constants plus one SDL call. Manual smoke is "resize the window, observe letterbox bars instead of distortion".
-- Scale modes (linear vs nearest) are intentionally left at SDL's default. Axis-aligned rectangles don't need a specific mode yet; the menus milestone or sprite work can revisit if needed.
-- Choosing `LETTERBOX` over `INTEGER_SCALE` keeps small-window sizes usable; integer scaling can be opted into later if pixel-perfect rendering becomes a requirement.
-
----
-
 ### Add the playfield layout helpers and draw the static paddles, ball, and centre line
 
 #### Description

@@ -259,6 +259,8 @@ The repository issues are organized around the following planned milestones:
 - Audio and polish
 - Quality and release (post-MVP)
 
+Gameplay is rendered in a fixed 800x600 logical resolution and letterboxed to the actual window; see [`src/Playfield.h`](src/Playfield.h) for the coordinate convention.
+
 A detailed roadmap is available in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Repository conventions and agent skills
