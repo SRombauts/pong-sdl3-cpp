@@ -61,6 +61,7 @@ set(PONG_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockSdlTicks.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlayfieldLayout.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlayfieldRenderer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RandomSourceMt19937.cpp
 )
 set(PONG_INC
@@ -71,6 +72,7 @@ set(PONG_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Playfield.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlayfieldLayout.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlayfieldRenderer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RandomSource.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RandomSourceMt19937.h
 )

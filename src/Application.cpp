@@ -4,6 +4,7 @@
 #include "FrameTiming.h"
 #include "Playfield.h"
 #include "PlayfieldLayout.h"
+#include "PlayfieldRenderer.h"
 #include "RandomSourceMt19937.h"
 
 #include <SDL3/SDL.h>
@@ -11,13 +12,15 @@
 #include <cstdint>
 #include <iostream>
 #include <utility>
-#include <vector>
 
 Application::Application(std::string title, int width, int height, std::unique_ptr<IClock> clock,
                          std::unique_ptr<IRandomSource> random)
     : m_title(std::move(title)), m_width(width), m_height(height),
       m_clock(clock ? std::move(clock) : std::make_unique<ClockSdlTicks>()),
-      m_random(random ? std::move(random) : std::make_unique<RandomSourceMt19937>(makeNonDeterministicSeed()))
+      m_random(random ? std::move(random) : std::make_unique<RandomSourceMt19937>(makeNonDeterministicSeed())),
+      m_playfield(std::make_unique<PlayfieldRenderer>(Playfield::kLogicalWidth, Playfield::kLogicalHeight,
+                                                      Playfield::kCentreDashSegmentCount, Playfield::kCentreDashWidth,
+                                                      Playfield::kCentreDashHeight, Playfield::kCentreDashGap))
 {
 }
 
@@ -194,13 +197,8 @@ void Application::render()
     SDL_RenderFillRect(m_renderer, &rightPaddle);
     SDL_RenderFillRect(m_renderer, &ball);
 
-    const std::vector<SDL_FRect> dashes = PlayfieldLayout::centreDashSegments(
-        Playfield::kLogicalWidth, Playfield::kLogicalHeight, Playfield::kCentreDashSegmentCount,
-        Playfield::kCentreDashWidth, Playfield::kCentreDashHeight, Playfield::kCentreDashGap);
-    for (const SDL_FRect& dash : dashes)
-    {
-        SDL_RenderFillRect(m_renderer, &dash);
-    }
+    // Static-chrome draw: the dash list was computed once at construction; no per-frame layout math here.
+    m_playfield->draw(m_renderer);
 
     // Restore the clear colour so the next frame's SDL_RenderClear() starts from black even if a future caller forgets
     // to set it explicitly.

@@ -9,6 +9,7 @@
 
 struct SDL_Window;
 struct SDL_Renderer;
+class PlayfieldRenderer;
 
 // Owns the SDL3 lifetime (init, window, renderer, event loop) and
 // per-frame timing. Reads time through an injected IClock and draws
@@ -70,5 +71,8 @@ private:
 
     std::unique_ptr<IClock> m_clock;
     std::unique_ptr<IRandomSource> m_random;
+    // Owns the static-playfield rectangles (centre-line dashes). Held by unique_ptr to keep this header SDL-free; the
+    // member is constructed eagerly in Application's constructor since the layout math has no SDL dependency.
+    std::unique_ptr<PlayfieldRenderer> m_playfield;
     std::uint64_t m_lastTickNs = 0;
 };

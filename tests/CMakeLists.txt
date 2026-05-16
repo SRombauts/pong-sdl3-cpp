@@ -5,6 +5,7 @@ add_executable(pong-sdl3-cpp-tests
     ApplicationTest.cpp
     FrameTimingTest.cpp
     PlayfieldLayoutTest.cpp
+    PlayfieldRendererTest.cpp
     RandomSourceTest.cpp
 )
 
