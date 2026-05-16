@@ -6,11 +6,13 @@
 #include "PlayfieldLayout.h"
 #include "PlayfieldRenderer.h"
 #include "RandomSourceMt19937.h"
+#include "TextRenderer.h"
 
 #include <SDL3/SDL.h>
 
 #include <cstdint>
 #include <iostream>
+#include <string_view>
 #include <utility>
 
 Application::Application(std::string title,
@@ -200,6 +202,21 @@ void Application::render()
 
     // Static-chrome draw: the dash list was computed once at construction; no per-frame layout math here.
     m_playfield->draw(m_renderer);
+
+    // Placeholder score "0 0" centered horizontally above the playfield. The literal text is replaced by the live score
+    // in the Scoring-and-match-flow milestone; the placement constants in Playfield.h stay.
+    constexpr std::string_view kScoreText = "0 0";
+    const float scoreGlyphWidth = static_cast<float>(TextRenderer::kGlyphPixelCols) * Playfield::kScorePixelSize;
+    const float scoreTotalWidth =
+        static_cast<float>(kScoreText.size()) * (scoreGlyphWidth + Playfield::kScoreGlyphSpacing) -
+        Playfield::kScoreGlyphSpacing;
+    const float scoreOriginX = (static_cast<float>(Playfield::kLogicalWidth) - scoreTotalWidth) * 0.5f;
+    TextRenderer::drawText(m_renderer,
+                           kScoreText,
+                           scoreOriginX,
+                           Playfield::kScoreTopY,
+                           Playfield::kScorePixelSize,
+                           Playfield::kScoreGlyphSpacing);
 
     // Restore the clear color so the next SDL_RenderClear() starts from black even if a future caller forgets it.
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);

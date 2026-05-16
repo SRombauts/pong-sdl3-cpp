@@ -33,4 +33,14 @@ constexpr float kCenterDashWidth = 6.0f;
 constexpr float kCenterDashHeight = 18.0f;
 constexpr float kCenterDashGap = 12.0f;
 constexpr int kCenterDashSegmentCount = 20;
+
+// Placeholder score readout, drawn by Application::render via TextRenderer. The score string ("0 0" today, real values
+// once the Scoring-and-match-flow milestone wires them in) is centered horizontally on the playfield's vertical midline
+// and pinned `kScoreTopY` logical pixels below the top edge. kScorePixelSize scales each font pixel of the 5x7 bitmap
+// glyph: at 4.0 logical pixels per font pixel, each digit occupies 20x28 logical pixels and the literal space character
+// in "0 0" yields a 20-pixel gap with kScoreGlyphSpacing of breathing room on either side. These three constants are
+// tuning knobs (font size, gap, top offset) and are expected to be revisited by the scoring-visuals milestone.
+constexpr float kScoreTopY = 24.0f;
+constexpr float kScorePixelSize = 4.0f;
+constexpr float kScoreGlyphSpacing = 4.0f;
 } // namespace Playfield
