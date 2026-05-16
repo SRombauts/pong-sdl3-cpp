@@ -202,3 +202,24 @@ TEST_CASE("textGlyphRects: defensive empty input and non-positive pixelSize retu
     CHECK(TextRenderer::textGlyphRects("0 0", 0.0f, 0.0f, 0.0f, 0.0f).empty());
     CHECK(TextRenderer::textGlyphRects("0 0", 0.0f, 0.0f, -1.0f, 0.0f).empty());
 }
+
+TEST_CASE("textWidth: matches the N*(glyphWidth + spacing) - spacing layout formula")
+{
+    constexpr float kPixelSize = 3.0f;
+    constexpr float kSpacing = 4.0f;
+    const float glyphWidth = static_cast<float>(TextRenderer::kGlyphPixelCols) * kPixelSize;
+
+    CHECK(TextRenderer::textWidth("", kPixelSize, kSpacing) == doctest::Approx(0.0f));
+    CHECK(TextRenderer::textWidth("0", kPixelSize, kSpacing) == doctest::Approx(glyphWidth));
+    // Two-digit scores like "11" need exactly one inter-glyph spacing slot, never two trailing ones.
+    CHECK(TextRenderer::textWidth("11", kPixelSize, kSpacing) == doctest::Approx(2.0f * glyphWidth + kSpacing));
+    CHECK(TextRenderer::textWidth("PAUSE", kPixelSize, kSpacing) ==
+          doctest::Approx(5.0f * (glyphWidth + kSpacing) - kSpacing));
+}
+
+TEST_CASE("textWidth: defensive empty input or non-positive pixelSize returns zero")
+{
+    CHECK(TextRenderer::textWidth("", 12.0f, 4.0f) == doctest::Approx(0.0f));
+    CHECK(TextRenderer::textWidth("11", 0.0f, 4.0f) == doctest::Approx(0.0f));
+    CHECK(TextRenderer::textWidth("11", -1.0f, 4.0f) == doctest::Approx(0.0f));
+}
