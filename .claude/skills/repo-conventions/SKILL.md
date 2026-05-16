@@ -35,7 +35,7 @@ description: Repository layout and naming conventions. Use to find or place file
 ## Code comments
 
 - Describe **architecture, design goals, and *why***, not *how*. The code shows the "how"; comments earn their keep by explaining the choice, the invariant, or the rejected alternative.
-- Keep them **short**. A one- or two-line intent comment beats a paragraph re-narrating the code below.
+- Keep them **concise in content** — a tight intent comment beats a paragraph re-narrating the code below. That is not a license to wrap every line at ~72 columns; use the same **120-column** limit as code (see the `format` skill). Run `clang-format -i` on touched files so comment reflow stays consistent.
 - Skip obvious comments. `// Returns the elapsed time in seconds` above `double secondsBetween(...)` is noise — the signature already says it.
 - Public-API contract notes (preconditions, defensive behaviour, ownership) are fine in headers when they document something the signature itself cannot.
 
