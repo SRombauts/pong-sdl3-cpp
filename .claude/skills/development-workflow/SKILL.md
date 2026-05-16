@@ -3,7 +3,7 @@ name: development-workflow
 description: >-
   Standard end-to-end workflow for working on a task in this repository:
   branch naming, implement + tests + style, self-review, commit,
-  `docs/ISSUES.md` cleanup, then hand off to the user with a PR draft.
+  `docs/ISSUES.md` cleanup, push the branch, and open a PR with `gh`.
   Use when starting work on an entry from `docs/ISSUES.md` (or, when one is filed, a GitHub issue).
 ---
 
@@ -16,9 +16,9 @@ When working on a task, follow these steps in order:
 3. take a step back to review carefully the changes: are they complete & accurate? Is this really the best solution possible?
 4. make a commit with a short description
 5. remove the task from the `docs/ISSUES.md`
-6. hand off to the user: draft a PR title and description, and let the user push the branch + open the PR
+6. push the branch to `origin` and open a pull request with `gh pr create`, then report the PR URL back in chat
 
-**The agent never pushes and never opens PRs.** The execution environment does not have write credentials to the remote, so `git push`, `gh pr create`, and any equivalent are out of scope for the agent. The agent's work ends at a local branch with all task commits applied and a PR draft presented in chat; everything from `git push` onward is the user's job.
+**The agent owns the full local-to-PR loop.** Once the build is green, tests pass, the diff has been self-reviewed, and `docs/ISSUES.md` has been cleaned up, the agent is expected to `git push -u origin HEAD` and `gh pr create` itself. The only remote-write commands explicitly out of scope are destructive ones (`git push --force`, `gh pr merge`, anything that rewrites or merges shared history): those still require an explicit user request. Merging the PR remains the user's call.
 
 ## Scope rule (read first)
 
@@ -64,7 +64,7 @@ Before committing, re-read the diff with these checks:
 - Write a short, imperative commit description (one line is usually enough). Match the style of recent commits (`git log --oneline`).
 - Multiple commits per task are fine — one task = one branch, not one commit. Each commit should be a coherent, reviewable slice of the task.
 - Do not amend without explicit user request.
-- Commits are the end of the agent's git-write surface: never `git push`, never `git push --force-with-lease`, never any other write to the remote. The user owns step 6 onward.
+- A plain `git push` of the task branch (step 6) is part of the workflow. Force-pushes (`--force`, `--force-with-lease`) and any rewrite of already-pushed history still require an explicit user request — see step 4b.
 
 **Do not sprinkle issue references in commit messages.** When a GitHub issue exists, the branch name already encodes the number (`feature/<taskid>-…`) and the PR description carries the formal `Closes #<taskid>`. When the task lives only in `docs/ISSUES.md`, there is no number to reference at all. Boilerplate like `Refs #11.` or `For #11:` at the start of every commit body is pure noise — it makes individual commits read as bureaucratic instead of natural, and it duplicates information that already lives one click away. Save explicit issue links for the PR description and, very occasionally, for a single commit whose subject genuinely needs the context to be understood standalone.
 
@@ -109,24 +109,33 @@ Do this only once the task as a whole is complete (all required scope has landed
 - If the milestone heading still has remaining entries, leave it; if it is now empty, leave the heading and update the milestone preamble note (the `> The following deliverables…` line) to reflect what is now done.
 - The cleanup may go in the final implementation commit or in a small dedicated follow-up commit on the same branch.
 
-### Step 6 — hand off to the user (PR draft, no push)
+### Step 6 — push the branch and open the PR
 
-The agent never pushes the branch and never opens the PR; both are the user's job. Once the task is supposedly complete (all scope landed, build green, tests passing, `docs/ISSUES.md` cleaned up), the agent stops here and presents a hand-off in chat. If the build, tests, or self-review revealed unfinished work, go back to step 2 instead.
+Once the task is supposedly complete (all scope landed, build green, tests passing, `docs/ISSUES.md` cleaned up), the agent pushes the branch and opens the PR itself. If the build, tests, or self-review revealed unfinished work, go back to step 2 instead.
 
-Hand-off contents:
+Concrete steps:
 
-- **Branch summary**: the local branch name and `git log --oneline main..HEAD` so the user knows exactly what is staged for review.
+1. `git push -u origin HEAD` to publish the branch and set the upstream. If the push is rejected (typically because `main` advanced underneath the branch), stop and report — do not force-push without an explicit user request.
+2. Open the PR with `gh pr create`, passing the title with `--title` and the description with `--body-file` (write the body to a temp file such as `.git/PR_BODY.md` and delete it afterwards). `--body "$(cat <<EOF…EOF)"` heredocs are not portable to Windows PowerShell — see the multi-line message note in step 4 for the same reason.
+3. Capture the PR URL `gh` prints and post it in chat alongside the rest of the hand-off (see below).
+
+PR content rules:
+
+- **Title**: short and imperative, matching the style of recent commits / PRs. Prefix with the issue number only when a GitHub issue has been filed (e.g. `#12 Add paddle input handling`); when the task lives only in `docs/ISSUES.md`, omit the prefix entirely (e.g. `Inject a Clock abstraction into Application`).
+- **Description**:
+  - A one- or two-sentence summary of what the change does and why.
+  - A `Closes #<taskid>` (or `Refs #<taskid>`) line **only when a GitHub issue exists**. For docs-only tasks, drop this line and instead reference the `docs/ISSUES.md` entry by its heading title in the summary.
+  - A short bullet list of the main changes (features, tests, docs).
+  - Any noteworthy trade-offs, follow-ups, or things explicitly out of scope.
+  - Test evidence: which build/test commands were run and their outcome.
+
+Hand-off contents (post in chat after the PR is open):
+
+- **Branch summary**: the branch name and `git log --oneline main..HEAD` so the user can see what is queued for review.
 - **Verification done**: which build / test / format commands ran and what they returned (one line each is plenty).
-- **PR draft** (the user will paste this into `git push -u origin HEAD` + `gh pr create`, or the GitHub web UI):
-  - **Title**: short and imperative, matching the style of recent commits / PRs. Prefix with the issue number only when a GitHub issue has been filed (e.g. `#12 Add paddle input handling`); when the task lives only in `docs/ISSUES.md`, omit the prefix entirely (e.g. `Inject a Clock abstraction into Application`).
-  - **Description**:
-    - A one- or two-sentence summary of what the change does and why.
-    - A `Closes #<taskid>` (or `Refs #<taskid>`) line **only when a GitHub issue exists**. For docs-only tasks, drop this line and instead reference the `docs/ISSUES.md` entry by its heading title in the summary.
-    - A short bullet list of the main changes (features, tests, docs).
-    - Any noteworthy trade-offs, follow-ups, or things explicitly out of scope.
-    - Test evidence: which build/test commands were run and their outcome.
+- **PR URL**: the link printed by `gh pr create`, so the user can jump straight to review and merge.
 
-Do not run `git push`, `gh pr create`, `gh pr edit`, `gh pr merge`, or any other remote-write command, even if the user seems to be asking for it: the credentials available to the agent do not authorise the operation, and surfacing a clean draft for the user to act on is faster than retrying failed remote writes.
+Do not run `gh pr merge`, `git push --force`, `git push --force-with-lease`, `gh pr edit` against an already-merged PR, or any other rewrite of shared history without an explicit user request. Merging the PR is always the user's call.
 
 ## When this skill applies
 
