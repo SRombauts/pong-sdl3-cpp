@@ -15,11 +15,11 @@ namespace
 {
 using Pattern = std::array<std::uint8_t, TextRenderer::kGlyphPixelRows>;
 
-constexpr Pattern kZero = {0b01110, 0b10001, 0b10011, 0b10101, 0b11001, 0b10001, 0b01110};
-constexpr Pattern kNine = {0b01110, 0b10001, 0b10001, 0b01111, 0b00001, 0b00010, 0b01100};
-constexpr Pattern kP = {0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000};
-constexpr Pattern kA = {0b01110, 0b10001, 0b10001, 0b11111, 0b10001, 0b10001, 0b10001};
-constexpr Pattern kBlank = {0, 0, 0, 0, 0, 0, 0};
+constexpr Pattern kZero = {0b1111, 0b1001, 0b1001, 0b1001, 0b1001, 0b1001, 0b1001, 0b1111};
+constexpr Pattern kNine = {0b1111, 0b1001, 0b1001, 0b1111, 0b0001, 0b0001, 0b0001, 0b0001};
+constexpr Pattern kP = {0b1111, 0b1001, 0b1110, 0b1000, 0b1000, 0b1000, 0b1000, 0b1000};
+constexpr Pattern kA = {0b0110, 0b1001, 0b1001, 0b1111, 0b1001, 0b1001, 0b1001, 0b1001};
+constexpr Pattern kBlank = {0, 0, 0, 0, 0, 0, 0, 0};
 
 // Count the on-pixels in a 5-column bitmap row -- a small popcount restricted to the 5 used bits.
 int onPixelsInRow(std::uint8_t row)
@@ -48,19 +48,21 @@ int onPixelsIn(const Pattern& pattern)
 
 TEST_CASE("glyphPattern: representative digits and letters match the documented bitmap")
 {
-    SUBCASE("0 -- rounded outline with the diagonal corner pixels filled")
+    SUBCASE("0 -- plain rectangular outline, no diagonal corner bar (matches Atari Pong digit ROM)")
     {
         CHECK(TextRenderer::glyphPattern('0') == kZero);
     }
-    SUBCASE("9 -- closed top, descending tail on the bottom-left")
+    SUBCASE("9 -- top bar, top loop, middle bar, right descending vertical (no bottom horizontal cap)")
     {
+        // The Atari Pong digit ROM omits the bottom horizontal on '9'; the bottom-right vertical just ends at row 7
+        // with no cap. Mirror image of the '6' shape (which omits the top horizontal).
         CHECK(TextRenderer::glyphPattern('9') == kNine);
     }
-    SUBCASE("P -- closed top half, vertical stem on the left")
+    SUBCASE("P -- shortened top loop (waist at row 2) above a long descending stem")
     {
         CHECK(TextRenderer::glyphPattern('P') == kP);
     }
-    SUBCASE("A -- triangular top, horizontal bar mid-row")
+    SUBCASE("A -- rounded apex, crossbar at row 3 with four leg rows below")
     {
         CHECK(TextRenderer::glyphPattern('A') == kA);
     }
@@ -75,14 +77,14 @@ TEST_CASE("glyphPattern: representative digits and letters match the documented 
     }
 }
 
-TEST_CASE("glyphPattern: all 5-bit rows use only the documented column bits (upper 3 bits always zero)")
+TEST_CASE("glyphPattern: all 4-bit rows use only the documented column bits (upper 4 bits always zero)")
 {
     for (char c : std::string_view{"0123456789AEGILMNOPQRSTUVY "})
     {
         const Pattern p = TextRenderer::glyphPattern(c);
         for (const std::uint8_t row : p)
         {
-            CHECK((row & 0b11100000u) == 0u);
+            CHECK((row & 0b11110000u) == 0u);
         }
     }
 }

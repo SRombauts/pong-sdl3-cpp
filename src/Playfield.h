@@ -40,9 +40,9 @@ constexpr int kCenterDashSegmentCount = 20;
 // x = kLogicalWidth/4, right score on x = 3*kLogicalWidth/4); this matches arcade-Pong reference frames where the two
 // scores sit well away from the dashed center line rather than hugging it. Both scores share the same kScoreTopY top
 // offset and kScorePixelSize font scale: at 10.0 logical pixels per font pixel, each digit occupies 60x84 logical
-// arcade-cabinet readout of reference Pong frames) and the literal space character in "0 0" yields a 60-pixel gap with
-// scores that the Scoring-and-match-flow milestone will introduce. All five constants are tuning knobs, expected to
-// be revisited by the scoring-visuals milestone once real values land.
+// pixels. kScoreGlyphSpacing is unused for the single-digit placeholders today but kept in place for the multi-digit
+// figures. All five constants are tuning knobs, expected to be revisited by the scoring-visuals milestone once real
+// values land.
 constexpr float kScoreTopY = 24.0f;
 constexpr float kScorePixelSize = 10.0f;
 constexpr float kScoreGlyphSpacing = 4.0f;
