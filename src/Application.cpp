@@ -6,11 +6,14 @@
 #include "PlayfieldLayout.h"
 #include "PlayfieldRenderer.h"
 #include "RandomSourceMt19937.h"
+#include "TextRenderer.h"
 
 #include <SDL3/SDL.h>
 
 #include <cstdint>
 #include <iostream>
+#include <string>
+#include <string_view>
 #include <utility>
 
 Application::Application(std::string title,
@@ -170,8 +173,27 @@ bool Application::pollEvents()
 
 void Application::update(double dtSeconds)
 {
-    // Placeholder until gameplay state lands; the dt is wired through so future code can consume it.
-    (void)dtSeconds;
+    // Placeholder score driver: every kScoreUpdateIntervalSeconds, increment one player's score chosen uniformly at
+    // random. When either reaches kScoreWinningPoints (arcade-Pong cap) both reset to 0 so the readout cycles through
+    // every digit shape for visual inspection. The Scoring-and-match-flow milestone replaces the whole block with real
+    // point-awarding logic and game-state transitions, so this stays inline rather than pulled into its own class.
+    //
+    // Loop (not just one increment per call) so a very long dt frame -- e.g. the application paused under a debugger
+    // -- catches up cleanly instead of starving the score updates and stalling visually.
+    m_scoreTickSeconds += dtSeconds;
+    while (m_scoreTickSeconds >= Playfield::kScoreUpdateIntervalSeconds)
+    {
+        m_scoreTickSeconds -= Playfield::kScoreUpdateIntervalSeconds;
+        const int scoringSide = m_random->intInRange(0, 1);
+        int& scoreToBump = (scoringSide == 0) ? m_leftScore : m_rightScore;
+        ++scoreToBump;
+
+        if (m_leftScore > Playfield::kScoreWinningPoints || m_rightScore > Playfield::kScoreWinningPoints)
+        {
+            m_leftScore = 0;
+            m_rightScore = 0;
+        }
+    }
 }
 
 void Application::render()
@@ -200,6 +222,24 @@ void Application::render()
 
     // Static-chrome draw: the dash list was computed once at construction; no per-frame layout math here.
     m_playfield->draw(m_renderer);
+
+    // Per-player scores: live values driven by the placeholder score ticker in update(). std::to_string allocates a
+    // tiny std::string per side per frame, which is dwarfed by the SDL draw calls; the Scoring-and-match-flow
+    // milestone is the right place to revisit any format/render hot path if it ever becomes one.
+    const std::string leftScoreText = std::to_string(m_leftScore);
+    const std::string rightScoreText = std::to_string(m_rightScore);
+    TextRenderer::drawTextCentered(m_renderer,
+                                   leftScoreText,
+                                   Playfield::kScoreLeftCenterX,
+                                   Playfield::kScoreTopY,
+                                   Playfield::kScorePixelSize,
+                                   Playfield::kScoreGlyphSpacing);
+    TextRenderer::drawTextCentered(m_renderer,
+                                   rightScoreText,
+                                   Playfield::kScoreRightCenterX,
+                                   Playfield::kScoreTopY,
+                                   Playfield::kScorePixelSize,
+                                   Playfield::kScoreGlyphSpacing);
 
     // Restore the clear color so the next SDL_RenderClear() starts from black even if a future caller forgets it.
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
