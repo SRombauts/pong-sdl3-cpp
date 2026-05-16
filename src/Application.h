@@ -68,4 +68,10 @@ private:
     // member is constructed eagerly in Application's constructor since the layout math has no SDL dependency.
     std::unique_ptr<PlayfieldRenderer> m_playfield;
     std::uint64_t m_lastTickNs = 0;
+
+    // Placeholder match state: per-player score plus the accumulator that decides when the next random tick fires.
+    // Wholly thrown away by the Scoring-and-match-flow milestone; see Playfield.h for the cadence and cap.
+    int m_leftScore = 0;
+    int m_rightScore = 0;
+    double m_scoreTickSeconds = 0.0;
 };

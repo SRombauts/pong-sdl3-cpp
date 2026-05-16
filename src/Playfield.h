@@ -48,4 +48,15 @@ constexpr float kScorePixelSize = 10.0f;
 constexpr float kScoreGlyphSpacing = 4.0f;
 constexpr float kScoreLeftCenterX = static_cast<float>(kLogicalWidth) * 0.25f;
 constexpr float kScoreRightCenterX = static_cast<float>(kLogicalWidth) * 0.75f;
+
+// Placeholder match dynamics, driven from Application::update so the readout cycles through every digit shape (single
+// and two-digit) for visual inspection of the bitmap font. Every kScoreUpdateIntervalSeconds a random player is
+// awarded one point; once either player reaches kScoreWinningPoints both scores reset to 0.
+//
+// kScoreWinningPoints = 11 matches the original Atari Pong arcade cabinet (1972) -- the canonical "first to 11 wins"
+// arcade rule. The Atari 2600 home variants later added 15- and 21-point modes as switch options; 11 stays the most
+// recognizable target and the smallest value that exercises a two-digit readout. The whole placeholder collapses into
+// the Scoring-and-match-flow milestone, which replaces the random ticker with real point-awarding logic.
+constexpr int kScoreWinningPoints = 11;
+constexpr float kScoreUpdateIntervalSeconds = 1.0f;
 } // namespace Playfield
