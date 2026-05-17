@@ -38,6 +38,9 @@
     Extra arguments forwarded to the CMake configure step. Passing extra
     arguments implies -Reconfigure since they may change cache variables.
 
+.PARAMETER Help
+    Show this help message and exit.
+
 .EXAMPLE
     scripts\build.ps1
 
@@ -52,6 +55,9 @@
 
 .EXAMPLE
     scripts\build.ps1 -Reconfigure
+
+.EXAMPLE
+    scripts\build.ps1 -Help
 #>
 
 [CmdletBinding()]
@@ -72,10 +78,17 @@ param(
 
     [switch]$Reconfigure,
 
-    [string[]]$ExtraArgs
+    [string[]]$ExtraArgs,
+
+    [switch]$Help
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($Help) {
+    Get-Help -Name $PSCommandPath -Full | Out-Host
+    exit 0
+}
 
 function Get-DefaultVisualStudioGenerator {
     $programFilesX86 = ${env:ProgramFiles(x86)}
