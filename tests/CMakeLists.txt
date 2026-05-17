@@ -7,6 +7,7 @@ add_executable(pong-sdl3-cpp-tests
     PlayfieldLayoutTest.cpp
     PlayfieldRendererTest.cpp
     RandomSourceTest.cpp
+    TextRendererTest.cpp
 )
 
 # Per-target settings mirror those on pong-sdl3-cpp in the root CMakeLists.txt --
