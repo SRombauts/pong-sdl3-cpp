@@ -6,6 +6,9 @@ project(pong-sdl3-cpp
     LANGUAGES CXX
 )
 
+message (STATUS "CMake version: ${CMAKE_VERSION}")
+message (STATUS "Project version: ${PROJECT_VERSION}")
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -37,6 +40,7 @@ set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
 set(SDL_UNINSTALL OFF CACHE BOOL "" FORCE)
 
+message (STATUS "Downloading SDL3 release-3.2.30")
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
@@ -127,10 +131,11 @@ if(BUILD_TESTING)
     set(DOCTEST_WITH_MAIN_IN_STATIC_LIB OFF CACHE BOOL "" FORCE)
     set(DOCTEST_NO_INSTALL ON CACHE BOOL "" FORCE)
 
+    message (STATUS "Downloading doctest v2.4.12")
     FetchContent_Declare(
         doctest
         GIT_REPOSITORY https://github.com/doctest/doctest.git
-        GIT_TAG v2.4.11
+        GIT_TAG v2.4.12
     )
     FetchContent_MakeAvailable(doctest)
 
