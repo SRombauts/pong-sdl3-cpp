@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Clock.h"
+#include "Paddle.h"
 #include "RandomSource.h"
 #include "Score.h"
 
@@ -74,6 +75,12 @@ private:
     // Owns the static-playfield rectangles (center-line dashes). Held by unique_ptr to keep this header SDL-free; the
     // member is constructed eagerly in Application's constructor since the layout math has no SDL dependency.
     std::unique_ptr<PlayfieldRenderer> m_playfield;
+    // Player paddles. Stored by value because Paddle is a plain POD; the (later) PaddleController members in the next
+    // milestone PR will turn these positions into per-frame motion. Seeded in the constructor from the Playfield::k...
+    // tuning constants so the default centers reproduce the classic Pong "inset from the side walls, centered
+    // vertically" layout.
+    Paddle m_leftPaddle;
+    Paddle m_rightPaddle;
     std::uint64_t m_lastTickNs = 0;
 
     // Per-player score bundles (numeric value + cached decimal text, kept in sync by setScore). The Score type itself

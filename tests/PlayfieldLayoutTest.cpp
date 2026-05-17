@@ -5,76 +5,18 @@
 
 #include <SDL3/SDL.h>
 
-#include <cmath>
 #include <vector>
 
 namespace
 {
 constexpr float kWidth = Playfield::kLogicalWidth;
 constexpr float kHeight = Playfield::kLogicalHeight;
-constexpr float kPaddleHW = Playfield::kPaddleHalfWidth;
-constexpr float kPaddleHH = Playfield::kPaddleHalfHeight;
 constexpr float kBallHS = Playfield::kBallHalfSize;
-constexpr float kInset = Playfield::kWallInset;
 constexpr float kDashW = Playfield::kCenterDashWidth;
 constexpr float kDashH = Playfield::kCenterDashHeight;
 constexpr float kDashGap = Playfield::kCenterDashGap;
 constexpr int kDashN = Playfield::kCenterDashSegmentCount;
 } // namespace
-
-TEST_CASE("leftPaddle: centered vertically, inset from the left wall")
-{
-    const SDL_FRect r = PlayfieldLayout::leftPaddle(kWidth, kHeight, kPaddleHW, kPaddleHH, kInset);
-
-    CHECK(r.w == doctest::Approx(2.0f * kPaddleHW));
-    CHECK(r.h == doctest::Approx(2.0f * kPaddleHH));
-
-    CHECK(r.x == doctest::Approx(kInset));
-    CHECK((r.y + r.h * 0.5f) == doctest::Approx(kHeight * 0.5f));
-}
-
-TEST_CASE("rightPaddle: centered vertically, inset from the right wall")
-{
-    const SDL_FRect r = PlayfieldLayout::rightPaddle(kWidth, kHeight, kPaddleHW, kPaddleHH, kInset);
-
-    CHECK(r.w == doctest::Approx(2.0f * kPaddleHW));
-    CHECK(r.h == doctest::Approx(2.0f * kPaddleHH));
-
-    CHECK((r.x + r.w) == doctest::Approx(kWidth - kInset));
-    CHECK((r.y + r.h * 0.5f) == doctest::Approx(kHeight * 0.5f));
-}
-
-TEST_CASE("paddles: left and right are mirrored across the vertical midline")
-{
-    const SDL_FRect left = PlayfieldLayout::leftPaddle(kWidth, kHeight, kPaddleHW, kPaddleHH, kInset);
-    const SDL_FRect right = PlayfieldLayout::rightPaddle(kWidth, kHeight, kPaddleHW, kPaddleHH, kInset);
-
-    const float leftMidX = left.x + left.w * 0.5f;
-    const float rightMidX = right.x + right.w * 0.5f;
-    CHECK((leftMidX + rightMidX) == doctest::Approx(kWidth));
-
-    CHECK(left.y == doctest::Approx(right.y));
-    CHECK(left.w == doctest::Approx(right.w));
-    CHECK(left.h == doctest::Approx(right.h));
-}
-
-TEST_CASE("paddles: oversized paddle still returns a usable rect (no NaN, no asserts)")
-{
-    // A paddle taller than the playfield mirrors the Paddle-controls milestone's clamping concern: the layout helper
-    // must not assert or produce NaN dimensions, even though the resulting rect cannot be drawn entirely on-screen.
-    // The Paddle-controls milestone is the right place to clamp; this layer just stays well-behaved.
-    const float oversizedHalfHeight = kHeight;
-    const SDL_FRect r = PlayfieldLayout::leftPaddle(kWidth, kHeight, kPaddleHW, oversizedHalfHeight, kInset);
-
-    CHECK(r.w == doctest::Approx(2.0f * kPaddleHW));
-    CHECK(r.h == doctest::Approx(2.0f * oversizedHalfHeight));
-    CHECK_FALSE(std::isnan(r.x));
-    CHECK_FALSE(std::isnan(r.y));
-
-    // Still vertically centered (the midpoint is on the playfield center line) -- only the rect extends past the top
-    // and bottom walls.
-    CHECK((r.y + r.h * 0.5f) == doctest::Approx(kHeight * 0.5f));
-}
 
 TEST_CASE("ball: centered on both axes within sub-pixel tolerance")
 {

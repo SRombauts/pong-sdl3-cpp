@@ -12,21 +12,6 @@
 // "centered on" intent directly without scattering "/ 2.0f" arithmetic.
 namespace PlayfieldLayout
 {
-
-// Centered vertically, with the paddle's left edge inset by `wallInset` logical pixels from the left wall.
-SDL_FRect leftPaddle(float playfieldWidth,
-                     float playfieldHeight,
-                     float paddleHalfWidth,
-                     float paddleHalfHeight,
-                     float wallInset);
-
-// Mirror of leftPaddle on the right wall (same vertical centering, same inset measured from the right wall).
-SDL_FRect rightPaddle(float playfieldWidth,
-                      float playfieldHeight,
-                      float paddleHalfWidth,
-                      float paddleHalfHeight,
-                      float wallInset);
-
 // Ball centered on both axes of the playfield.
 SDL_FRect ball(float playfieldWidth, float playfieldHeight, float ballHalfSize);
 

@@ -3,35 +3,6 @@
 namespace PlayfieldLayout
 {
 
-SDL_FRect leftPaddle(float playfieldWidth,
-                     float playfieldHeight,
-                     float paddleHalfWidth,
-                     float paddleHalfHeight,
-                     float wallInset)
-{
-    (void)playfieldWidth;
-    SDL_FRect rect{};
-    rect.x = wallInset;
-    rect.y = playfieldHeight * 0.5f - paddleHalfHeight;
-    rect.w = paddleHalfWidth * 2.0f;
-    rect.h = paddleHalfHeight * 2.0f;
-    return rect;
-}
-
-SDL_FRect rightPaddle(float playfieldWidth,
-                      float playfieldHeight,
-                      float paddleHalfWidth,
-                      float paddleHalfHeight,
-                      float wallInset)
-{
-    SDL_FRect rect{};
-    rect.x = playfieldWidth - wallInset - paddleHalfWidth * 2.0f;
-    rect.y = playfieldHeight * 0.5f - paddleHalfHeight;
-    rect.w = paddleHalfWidth * 2.0f;
-    rect.h = paddleHalfHeight * 2.0f;
-    return rect;
-}
-
 SDL_FRect ball(float playfieldWidth, float playfieldHeight, float ballHalfSize)
 {
     SDL_FRect rect{};
