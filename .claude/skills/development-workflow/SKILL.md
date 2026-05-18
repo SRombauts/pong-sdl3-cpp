@@ -12,8 +12,8 @@ description: >-
 When working on a task, follow these steps in order:
 
 1. create and switch to a branch with the following pattern `feature/<task-name>` (or `feature/<taskid>-<task-name>` when a GitHub issue has been filed — see step 1 for details)
-2. implement the features, corresponding tests, check build & style
-3. take a step back to review carefully the changes: are they complete & accurate? Is this really the best solution possible?
+2. implement the features, corresponding tests, check build & style (follow the `game-code-architecture` skill for layering and frame-loop rules)
+3. take a step back to review carefully the changes: are they complete & accurate? Is this really the best solution possible? (walk the `game-code-architecture` review checklist)
 4. make a commit with a short description
 5. remove the task from the `docs/ISSUES.md`
 6. push the branch to `origin` and open a pull request with `gh pr create`, then report the PR URL back in chat
@@ -46,6 +46,7 @@ These anchors operationalize the steps above without changing them.
 
 ### Step 2 — implement, test, style
 
+- **Read and apply the [`game-code-architecture`](../game-code-architecture/SKILL.md) skill** while planning and coding: where logic lives (pure helper vs SDL boundary vs `Application`), frame-loop constraints (`update` / `render` stay alloc-free), `constexpr` tuning, and structs-vs-free-function algorithms. Sketch that split in the implementation plan before the first commit.
 - **Plan the implementation as a sequence of atomic intermediate steps up front**, before touching code, and surface the plan to the user (the agent's todo list is a fine vehicle when the task spans more than two or three commits). Each step in the plan becomes one commit in step 4, so the reviewer can read the branch one commit at a time and accept or push back on each slice independently. Typical cut points: a new data structure, a pure helper, the SDL/IO wiring, the call-site integration, the documentation/cleanup pass — each landing with its own focused tests. Revisit the plan when reality diverges; do not retroactively rationalise a monolithic diff.
 - Use `scripts/build.ps1` (Windows) or `scripts/build.sh` (Linux/macOS); see the `build` skill. A non-zero exit code means the build failed — surface it, don't retry blindly.
 - Run the test suite with `scripts/test.ps1` (Windows) or `scripts/test.sh` (Linux/macOS). The raw `ctest --test-dir build --output-on-failure` invocation is also fine. Add or extend tests under `tests/` for any new logic.
@@ -56,6 +57,7 @@ These anchors operationalize the steps above without changing them.
 
 Before committing, re-read the diff with these checks:
 
+- **Walk the review checklist in [`game-code-architecture`](../game-code-architecture/SKILL.md)** (hot-path alloc/work, SDL surface area, injected time/random, pure logic tested, `constexpr`/const-correctness, structs vs algorithms). Flag any violation with a one-line *why* and a concrete fix.
 - All acceptance criteria of the task (so far) are met.
 - The change is minimal and focused; no drive-by edits unrelated to the task.
 - Edge cases and failure modes are covered by tests.
