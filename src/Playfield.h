@@ -33,6 +33,13 @@ constexpr float kPaddleHalfHeight = 16.0f;
 constexpr float kBallHalfSize = 6.0f;
 constexpr float kWallInset = 24.0f;
 
+// Default per-paddle speed cap in logical pixels per second, used to seed both player paddles in Application. Speed is
+// stored per Paddle (not as a global) so future milestones (Analog-and-gamepad, One-player-AI) can override it per
+// instance -- for example, an Easy AI moving slower than the player -- without touching the data structure. 400 px/s
+// lets a paddle cross the full vertical travel (~568 px between the clamped top and bottom centers) in ~1.4 s, which
+// matches the arcade feel where a focused player can reach any incoming ball.
+constexpr float kPaddleSpeed = 400.0f;
+
 // Dashed center line. With kCenterDashSegmentCount = 20 and pitch (kCenterDashHeight + kCenterDashGap) = 30, the 20
 // bands exactly tile the 600-pixel playfield, leaving symmetric gap/2 = 6 px clearances at top and bottom.
 constexpr float kCenterDashWidth = 6.0f;

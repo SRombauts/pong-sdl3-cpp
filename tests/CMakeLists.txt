@@ -4,6 +4,7 @@ add_executable(pong-sdl3-cpp-tests
     SmokeTest.cpp
     ApplicationTest.cpp
     FrameTimingTest.cpp
+    PaddleTest.cpp
     PlayfieldLayoutTest.cpp
     PlayfieldRendererTest.cpp
     RandomSourceTest.cpp
