@@ -2,6 +2,7 @@
 
 #include "Clock.h"
 #include "RandomSource.h"
+#include "Score.h"
 
 #include <cstdint>
 #include <memory>
@@ -54,6 +55,12 @@ private:
     void update(double dtSeconds);
     void render();
 
+    // Placeholder score driver: every kScoreUpdateIntervalSeconds, awards one point to a uniformly random player and
+    // resets both scores to 0 once either crosses kScoreWinningPoints. Wholly thrown away by the Scoring-and-match-flow
+    // milestone; isolated behind its own method so the deletion is a one-line edit in update() and the rest of
+    // Application stays uncluttered.
+    void placeholderScoreDriver(double dtSeconds);
+
     std::string m_title;
     int m_width = 0;
     int m_height = 0;
@@ -69,9 +76,10 @@ private:
     std::unique_ptr<PlayfieldRenderer> m_playfield;
     std::uint64_t m_lastTickNs = 0;
 
-    // Placeholder match state: per-player score plus the accumulator that decides when the next random tick fires.
-    // Wholly thrown away by the Scoring-and-match-flow milestone; see Playfield.h for the cadence and cap.
-    int m_leftScore = 0;
-    int m_rightScore = 0;
+    // Per-player score bundles (numeric value + cached decimal text, kept in sync by setScore). The Score type itself
+    // survives the Scoring-and-match-flow milestone; only the placeholder driver above goes away. m_scoreTickSeconds
+    // is the placeholder driver's accumulator and disappears with it. See Playfield.h for the cadence and cap.
+    Score m_leftScore;
+    Score m_rightScore;
     double m_scoreTickSeconds = 0.0;
 };
