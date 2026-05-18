@@ -53,7 +53,7 @@ Keep **data** (structs, tuning, cached rects) separate from **algorithms** (coll
 - **`constexpr` for compile-time facts** — resolutions, half-extents, dash counts, glyph tables, win scores. Prefer named constants over magic numbers; `static_cast` when mixing `int` and `float`.
 - **Do not `constexpr` what must stay runtime** — injected clock/random, SDL handles, vectors built from caller parameters.
 - **Pure functions** = same inputs → same outputs, no I/O, no globals. `[[nodiscard]]` on pure helpers.
-- **Structs hold state; free functions implement policy** — `Paddle{position, half-size, speed}` plus `stepPaddleCenterY(request, …)`, not a deep `Paddle::update()` that reads SDL or controllers.
+- **Structs hold state; free functions implement policy** — `Paddle{position, half-size, speed}` + `stepPaddleCenterY(request, …)`; `Score{value, text}` + `setScore(score, newValue)`; never a deep `Paddle::update()` that reads SDL or controllers. When two fields share an invariant (`Score::text == std::to_string(Score::value)`), expose only the setter that maintains it and treat direct field mutation as a review-flagged bug.
 - **Const-correct interfaces, value types at boundaries** — `const` query methods; `const&` or pass-by-value for small PODs; return fresh values rather than mutating caller state unless the API is explicitly in-out.
 - **`std::string_view` for non-owning string params.** Use `const std::string&` only when you genuinely need a `std::string` API inside.
 - **Delete copy / move on owners and polymorphic bases.** Mark all four special members explicitly — slicing and accidental copies of SDL handles are bugs, not features.
@@ -66,11 +66,12 @@ Keep **data** (structs, tuning, cached rects) separate from **algorithms** (coll
 - **Free function + explicit inputs** — testable without a window (`secondsBetween`, layout helpers).
 - **Cache at construction** — `PlayfieldRenderer` builds `m_centerDashes` once; `draw()` only blits.
 - **Header stays SDL-free when cheap** — forward-declare SDL types; hide heavy includes behind `unique_ptr`.
-- **Separate "compute rects" from "draw rects"** — the compute half is pure and tested; the draw half is a thin SDL loop.
+- **Separate "compute rects" from "draw rects"** — the compute half is pure and tested; the draw half is a thin SDL loop. Same shape works as a sink/callback when even the intermediate `vector` would allocate per frame (`TextRenderer::drawText` passes a `[renderer](const SDL_FRect&){…}` lambda to the shared inner helper).
+- **Top-level hot-path functions read at intent level** — mechanical detail (formatting, byte packing, inner draw loops) lives in a named helper one level down. `Application::render()` reads cached `Score.text` and issues one `drawTextCentered` call per side; the `to_string`, the cache invalidation, and the per-pixel loop all live in their own helpers.
 - **Seed mutable caches in `init`, not lazily** — `m_lastTickNs = m_clock->now()` so the first frame's `dt` is real.
 - **Non-fatal SDL setup logs and keeps going** — V-Sync / LogicalPresentation failures fall back gracefully rather than aborting.
 - **Linear scan for small lookup tables is fine when documented** — name the obvious future optimisation in a comment rather than reaching for `std::map` reflexively.
-- **Placeholder code is inline and labeled** with the replacing milestone — do not grow a class for code that will be deleted.
+- **Placeholder code is labeled with the replacing milestone** — inline when it is a few lines, behind a clearly-named private helper (`Application::placeholderScoreDriver`) when it grows beyond that, but never a separate class or type. The name itself flags the deletion target for the future milestone.
 
 ## Review checklist
 
