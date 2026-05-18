@@ -95,24 +95,29 @@ std::array<std::uint8_t, kGlyphPixelRows> glyphPattern(char c)
     return kBlankGlyph;
 }
 
-std::vector<SDL_FRect> textGlyphRects(std::string_view text,
-                                      float originX,
-                                      float originY,
-                                      float pixelSize,
-                                      float glyphSpacing)
+namespace
 {
-    std::vector<SDL_FRect> rects;
+
+// Walk the on-pixels of `text` rendered with the documented grid scale and emit one SDL_FRect per pixel to `sink`.
+// Factoring choice: both textGlyphRects (build a vector for tests) and drawText (issue SDL_RenderFillRect directly,
+// allocation-free) share this helper so the layout math lives in exactly one place and the draw path does not pay
+// the textGlyphRects vector cost per call. `sink` is taken by forwarding reference; the two concrete sinks below are
+// stateless lambdas that the compiler inlines fully.
+template <class Sink>
+void forEachGlyphRect(std::string_view text,
+                      float originX,
+                      float originY,
+                      float pixelSize,
+                      float glyphSpacing,
+                      Sink&& sink)
+{
     if (text.empty() || pixelSize <= 0.0f)
     {
-        return rects;
+        return;
     }
 
     const float glyphWidth = static_cast<float>(kGlyphPixelCols) * pixelSize;
     const float glyphPitch = glyphWidth + glyphSpacing;
-
-    // Upper-bound the rect count so the typical case avoids reallocations. Worst case is every pixel of every glyph
-    // turned on (35 per glyph); the reserve cost is one allocation per call regardless of glyph density.
-    rects.reserve(text.size() * static_cast<std::size_t>(kGlyphPixelCols * kGlyphPixelRows));
 
     for (std::size_t i = 0; i < text.size(); ++i)
     {
@@ -135,11 +140,37 @@ std::vector<SDL_FRect> textGlyphRects(std::string_view text,
                     rect.y = originY + static_cast<float>(row) * pixelSize;
                     rect.w = pixelSize;
                     rect.h = pixelSize;
-                    rects.push_back(rect);
+                    sink(rect);
                 }
             }
         }
     }
+}
+
+} // namespace
+
+std::vector<SDL_FRect> textGlyphRects(std::string_view text,
+                                      float originX,
+                                      float originY,
+                                      float pixelSize,
+                                      float glyphSpacing)
+{
+    std::vector<SDL_FRect> rects;
+    if (text.empty() || pixelSize <= 0.0f)
+    {
+        return rects;
+    }
+
+    // Upper-bound the rect count so the typical case avoids reallocations. Worst case is every pixel of every glyph
+    // turned on (kGlyphPixelCols * kGlyphPixelRows per glyph); the reserve cost is one allocation per call regardless
+    // of glyph density.
+    rects.reserve(text.size() * static_cast<std::size_t>(kGlyphPixelCols * kGlyphPixelRows));
+    forEachGlyphRect(text,
+                     originX,
+                     originY,
+                     pixelSize,
+                     glyphSpacing,
+                     [&rects](const SDL_FRect& rect) { rects.push_back(rect); });
     return rects;
 }
 
@@ -164,11 +195,12 @@ void drawText(SDL_Renderer* renderer,
     {
         return;
     }
-    const std::vector<SDL_FRect> rects = textGlyphRects(text, originX, originY, pixelSize, glyphSpacing);
-    for (const SDL_FRect& rect : rects)
-    {
-        SDL_RenderFillRect(renderer, &rect);
-    }
+    forEachGlyphRect(text,
+                     originX,
+                     originY,
+                     pixelSize,
+                     glyphSpacing,
+                     [renderer](const SDL_FRect& rect) { SDL_RenderFillRect(renderer, &rect); });
 }
 
 void drawTextCentered(SDL_Renderer* renderer,

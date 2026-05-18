@@ -81,13 +81,15 @@ constexpr int kGlyphPixelRows = 8;
 // varying length) without re-deriving the formula at every call site.
 [[nodiscard]] float textWidth(std::string_view text, float pixelSize, float glyphSpacing);
 
-// Thin SDL boundary: computes the rects via textGlyphRects() and issues one SDL_RenderFillRect per rect. Does not
-// touch the renderer's draw-color state, so the caller can set white once and draw paddles, ball, dashes, and text
-// under the same setup (the same convention PlayfieldRenderer::draw follows).
+// Thin SDL boundary: walks the same on-pixel layout as textGlyphRects() but issues SDL_RenderFillRect directly on
+// each pixel via a sink callback, so the draw path is allocation-free per call (no intermediate std::vector). Does
+// not touch the renderer's draw-color state, so the caller can set white once and draw paddles, ball, dashes, and
+// text under the same setup (the same convention PlayfieldRenderer::draw follows).
 //
-// Not directly unit-tested: its behavior reduces to textGlyphRects() (covered by TextRendererTest) plus the SDL call,
-// which would require an offscreen renderer harness to exercise meaningfully. Keep the function body trivial enough
-// that visual inspection is the assurance.
+// Not directly unit-tested: the layout math is exercised by textGlyphRects() in TextRendererTest (both share the
+// same internal helper); only the SDL_RenderFillRect call itself is uncovered, which would require an offscreen
+// renderer harness to exercise meaningfully. Keep the function body trivial enough that visual inspection is the
+// assurance.
 void drawText(SDL_Renderer* renderer,
               std::string_view text,
               float originX,
