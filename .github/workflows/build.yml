@@ -37,8 +37,16 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libx11-dev \
             libxext-dev \
+            libxcursor-dev \
+            libxfixes-dev \
+            libxi-dev \
+            libxinerama-dev \
             libxrandr-dev \
+            libxss-dev \
+            libxtst-dev \
             libwayland-dev \
+            wayland-protocols \
+            libdecor-0-dev \
             libxkbcommon-dev \
             libegl1-mesa-dev \
             libgl1-mesa-dev \
