@@ -40,11 +40,11 @@ set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
 set(SDL_UNINSTALL OFF CACHE BOOL "" FORCE)
 
-message (STATUS "Downloading SDL3 release-3.2.30")
+message (STATUS "Downloading SDL3 release-3.4.8")
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.2.30
+    GIT_TAG release-3.4.8
     GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(SDL3)
