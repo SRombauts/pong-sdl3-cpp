@@ -135,11 +135,11 @@ if(BUILD_TESTING)
     set(DOCTEST_WITH_MAIN_IN_STATIC_LIB OFF CACHE BOOL "" FORCE)
     set(DOCTEST_NO_INSTALL ON CACHE BOOL "" FORCE)
 
-    message (STATUS "Downloading doctest v2.4.12")
+    message (STATUS "Downloading doctest v2.5.2")
     FetchContent_Declare(
         doctest
         GIT_REPOSITORY https://github.com/doctest/doctest.git
-        GIT_TAG v2.4.12
+        GIT_TAG v2.5.2
     )
     FetchContent_MakeAvailable(doctest)
 
