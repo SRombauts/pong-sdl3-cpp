@@ -135,6 +135,12 @@ PR content rules:
   - Any noteworthy trade-offs, follow-ups, or things explicitly out of scope.
   - Test evidence: which build/test commands were run and their outcome.
 
+  Constraints on the body:
+
+  - **Stay high-level.** Describe the overview, the architecture and the design decisions — the *why* that the diff cannot carry on its own. The diff is the source of truth for *what* changed line by line; the body's job is to frame it. Do not paraphrase the diff file by file, do not enumerate every renamed symbol, do not narrate the implementation step by step.
+  - **No code snippets by default.** The diff already shows the code. Embed a snippet only in the rare case where a few lines genuinely clarify a non-obvious change that the surrounding diff context buries — a subtle bugfix illustrating the bad-vs-good line, a tricky algorithm whose key invariant is easier to see in isolation. The default answer is "no snippet".
+  - **Do not enumerate the branch's commits and do not pin commit SHAs in the body.** Amends, reorderings, and rebases during review (encouraged by step 4b) make any embedded list go stale within hours. GitHub's "Commits" tab is the live source for that view; the body should describe the change as one whole.
+
 Hand-off contents (post in chat after the PR is open):
 
 - **Branch summary**: the branch name and `git log --oneline main..HEAD` so the user can see what is queued for review.
