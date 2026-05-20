@@ -106,6 +106,8 @@ The default rule from step 4 ("do not amend without explicit user request") stil
 
 The agent cannot run `git rebase -i` interactively in its harness. Use a sequence of `git cherry-pick` + `git commit --amend -m … -m …` calls instead, with a `backup-pre-rewrite` branch as safety net until the user confirms the result.
 
+**After the rewrite reaches origin, refresh the PR body.** A non-trivial rebase / amend often changes the design, the API surface, the test coverage, or the file layout enough that the previous body's overview no longer matches what is on the branch. As soon as the force-push lands (or the user confirms one will land), re-read the body against the new commits and edit it via `gh pr edit <N> --body-file <temp>` (same shell-portability rationale as `gh pr create` in step 6). Re-apply the *Constraints on the body* from step 6 when rewriting — high-level overview, no per-file paraphrase, no code snippets by default, no commit SHAs or commit lists. Skip the refresh only when the rewrite was purely cosmetic (whitespace, typo, comment-only edit) and the body's claims are still accurate.
+
 ### Step 5 — remove from `docs/ISSUES.md`
 
 Do this only once the task as a whole is complete (all required scope has landed on the branch), not after every intermediate commit.
