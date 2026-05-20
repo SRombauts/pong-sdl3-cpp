@@ -11,8 +11,8 @@
 
 namespace
 {
-constexpr int kWidth = Playfield::kLogicalWidth;
-constexpr int kHeight = Playfield::kLogicalHeight;
+constexpr float kWidth = Playfield::kLogicalWidth;
+constexpr float kHeight = Playfield::kLogicalHeight;
 constexpr float kDashW = Playfield::kCenterDashWidth;
 constexpr float kDashH = Playfield::kCenterDashHeight;
 constexpr float kDashGap = Playfield::kCenterDashGap;

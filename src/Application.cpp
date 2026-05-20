@@ -97,9 +97,13 @@ bool Application::init()
     // (distorts aspect ratio) and OVERSCAN (crops the playfield): the 4:3 playable area stays intact with black bars
     // where the window aspect differs. INTEGER_SCALE waits for a pixel-perfect need. Failure is non-fatal -- the window
     // still presents without the logical mapping -- but every layout assumes success, so log loudly.
+    // SDL takes the logical resolution as int; the Playfield constants are float so every gameplay site reads them
+    // straight into float math without a per-call cast. The single float→int cast lives here, at the SDL boundary,
+    // matching the "SDL stays concentrated at thin adapters" rule. The constants are integer-valued (800.0f, 600.0f)
+    // so the conversion is bit-exact.
     if (!SDL_SetRenderLogicalPresentation(m_renderer,
-                                          Playfield::kLogicalWidth,
-                                          Playfield::kLogicalHeight,
+                                          static_cast<int>(Playfield::kLogicalWidth),
+                                          static_cast<int>(Playfield::kLogicalHeight),
                                           SDL_LOGICAL_PRESENTATION_LETTERBOX))
     {
         std::cerr << "SDL_SetRenderLogicalPresentation failed (non-fatal): " << SDL_GetError() << std::endl;

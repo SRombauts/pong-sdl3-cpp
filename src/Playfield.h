@@ -17,8 +17,13 @@
 // independent and the window can be resized freely at runtime without affecting gameplay coordinates.
 namespace Playfield
 {
-constexpr int kLogicalWidth = 800;
-constexpr int kLogicalHeight = 600;
+// Stored as `float` so every gameplay consumer (paddle layout, dashed line, ball center) reads them straight into float
+// math without an explicit cast at each call site. The only place that needs the integer form is the SDL boundary --
+// SDL_SetRenderLogicalPresentation takes ints -- and that single cast lives in Application::init() rather than being
+// duplicated across the gameplay code. 800.0f and 600.0f are exactly representable in IEEE-754 binary32, so the
+// float→int round-trip at the SDL boundary is bit-exact.
+constexpr float kLogicalWidth = 800.0f;
+constexpr float kLogicalHeight = 600.0f;
 
 // Sizes are half-extents because the layout helpers and collision math operate on centers; storing the half-extent
 // avoids "/2" in call sites. The paddle dimensions (8x32 logical pixels) target the thin, short-bar look of arcade
@@ -46,8 +51,8 @@ constexpr int kCenterDashSegmentCount = 20;
 constexpr float kScoreTopY = 24.0f;
 constexpr float kScorePixelSize = 10.0f;
 constexpr float kScoreGlyphSpacing = 4.0f;
-constexpr float kScoreLeftCenterX = static_cast<float>(kLogicalWidth) * 0.25f;
-constexpr float kScoreRightCenterX = static_cast<float>(kLogicalWidth) * 0.75f;
+constexpr float kScoreLeftCenterX = kLogicalWidth * 0.25f;
+constexpr float kScoreRightCenterX = kLogicalWidth * 0.75f;
 
 // Placeholder match dynamics, driven from Application::update so the readout cycles through every digit shape (single
 // and two-digit) for visual inspection of the bitmap font. Every kScoreUpdateIntervalSeconds a random player is

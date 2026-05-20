@@ -10,8 +10,8 @@
 
 namespace
 {
-constexpr int kWidth = Playfield::kLogicalWidth;
-constexpr int kHeight = Playfield::kLogicalHeight;
+constexpr float kWidth = Playfield::kLogicalWidth;
+constexpr float kHeight = Playfield::kLogicalHeight;
 constexpr float kPaddleHW = Playfield::kPaddleHalfWidth;
 constexpr float kPaddleHH = Playfield::kPaddleHalfHeight;
 constexpr float kBallHS = Playfield::kBallHalfSize;
@@ -30,7 +30,7 @@ TEST_CASE("leftPaddle: centered vertically, inset from the left wall")
     CHECK(r.h == doctest::Approx(2.0f * kPaddleHH));
 
     CHECK(r.x == doctest::Approx(kInset));
-    CHECK((r.y + r.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f));
+    CHECK((r.y + r.h * 0.5f) == doctest::Approx(kHeight * 0.5f));
 }
 
 TEST_CASE("rightPaddle: centered vertically, inset from the right wall")
@@ -40,8 +40,8 @@ TEST_CASE("rightPaddle: centered vertically, inset from the right wall")
     CHECK(r.w == doctest::Approx(2.0f * kPaddleHW));
     CHECK(r.h == doctest::Approx(2.0f * kPaddleHH));
 
-    CHECK((r.x + r.w) == doctest::Approx(static_cast<float>(kWidth) - kInset));
-    CHECK((r.y + r.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f));
+    CHECK((r.x + r.w) == doctest::Approx(kWidth - kInset));
+    CHECK((r.y + r.h * 0.5f) == doctest::Approx(kHeight * 0.5f));
 }
 
 TEST_CASE("paddles: left and right are mirrored across the vertical midline")
@@ -51,7 +51,7 @@ TEST_CASE("paddles: left and right are mirrored across the vertical midline")
 
     const float leftMidX = left.x + left.w * 0.5f;
     const float rightMidX = right.x + right.w * 0.5f;
-    CHECK((leftMidX + rightMidX) == doctest::Approx(static_cast<float>(kWidth)));
+    CHECK((leftMidX + rightMidX) == doctest::Approx(kWidth));
 
     CHECK(left.y == doctest::Approx(right.y));
     CHECK(left.w == doctest::Approx(right.w));
@@ -63,7 +63,7 @@ TEST_CASE("paddles: oversized paddle still returns a usable rect (no NaN, no ass
     // A paddle taller than the playfield mirrors the Paddle-controls milestone's clamping concern: the layout helper
     // must not assert or produce NaN dimensions, even though the resulting rect cannot be drawn entirely on-screen.
     // The Paddle-controls milestone is the right place to clamp; this layer just stays well-behaved.
-    const float oversizedHalfHeight = static_cast<float>(kHeight);
+    const float oversizedHalfHeight = kHeight;
     const SDL_FRect r = PlayfieldLayout::leftPaddle(kWidth, kHeight, kPaddleHW, oversizedHalfHeight, kInset);
 
     CHECK(r.w == doctest::Approx(2.0f * kPaddleHW));
@@ -73,7 +73,7 @@ TEST_CASE("paddles: oversized paddle still returns a usable rect (no NaN, no ass
 
     // Still vertically centered (the midpoint is on the playfield center line) -- only the rect extends past the top
     // and bottom walls.
-    CHECK((r.y + r.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f));
+    CHECK((r.y + r.h * 0.5f) == doctest::Approx(kHeight * 0.5f));
 }
 
 TEST_CASE("ball: centered on both axes within sub-pixel tolerance")
@@ -82,8 +82,8 @@ TEST_CASE("ball: centered on both axes within sub-pixel tolerance")
 
     CHECK(r.w == doctest::Approx(2.0f * kBallHS));
     CHECK(r.h == doctest::Approx(2.0f * kBallHS));
-    CHECK((r.x + r.w * 0.5f) == doctest::Approx(static_cast<float>(kWidth) * 0.5f).epsilon(1e-4));
-    CHECK((r.y + r.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f).epsilon(1e-4));
+    CHECK((r.x + r.w * 0.5f) == doctest::Approx(kWidth * 0.5f).epsilon(1e-4));
+    CHECK((r.y + r.h * 0.5f) == doctest::Approx(kHeight * 0.5f).epsilon(1e-4));
 }
 
 TEST_CASE("centerDashSegments: production tuning yields the expected count and total covered length")
@@ -107,7 +107,7 @@ TEST_CASE("centerDashSegments: line is horizontally centered and gaps follow the
         PlayfieldLayout::centerDashSegments(kWidth, kHeight, kDashN, kDashW, kDashH, kDashGap);
     REQUIRE(dashes.size() >= 2);
 
-    const float playfieldMidX = static_cast<float>(kWidth) * 0.5f;
+    const float playfieldMidX = kWidth * 0.5f;
     for (const SDL_FRect& d : dashes)
     {
         CHECK(d.w == doctest::Approx(kDashW));
@@ -133,7 +133,7 @@ TEST_CASE("centerDashSegments: first and last segment positions stay inside the 
     REQUIRE(!dashes.empty());
 
     CHECK(dashes.front().y >= 0.0f);
-    CHECK((dashes.back().y + dashes.back().h) <= static_cast<float>(kHeight));
+    CHECK((dashes.back().y + dashes.back().h) <= kHeight);
 }
 
 TEST_CASE("centerDashSegments: defensive segmentCount == 1 returns a single centered dash")
@@ -145,8 +145,8 @@ TEST_CASE("centerDashSegments: defensive segmentCount == 1 returns a single cent
     const SDL_FRect& d = dashes.front();
     CHECK(d.w == doctest::Approx(kDashW));
     CHECK(d.h == doctest::Approx(kDashH));
-    CHECK((d.x + d.w * 0.5f) == doctest::Approx(static_cast<float>(kWidth) * 0.5f));
-    CHECK((d.y + d.h * 0.5f) == doctest::Approx(static_cast<float>(kHeight) * 0.5f));
+    CHECK((d.x + d.w * 0.5f) == doctest::Approx(kWidth * 0.5f));
+    CHECK((d.y + d.h * 0.5f) == doctest::Approx(kHeight * 0.5f));
 }
 
 TEST_CASE("centerDashSegments: defensive segmentCount == 0 returns an empty range with no negative dimensions")

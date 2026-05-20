@@ -3,8 +3,8 @@
 namespace PlayfieldLayout
 {
 
-SDL_FRect leftPaddle(int playfieldWidth,
-                     int playfieldHeight,
+SDL_FRect leftPaddle(float playfieldWidth,
+                     float playfieldHeight,
                      float paddleHalfWidth,
                      float paddleHalfHeight,
                      float wallInset)
@@ -12,38 +12,38 @@ SDL_FRect leftPaddle(int playfieldWidth,
     (void)playfieldWidth;
     SDL_FRect rect{};
     rect.x = wallInset;
-    rect.y = static_cast<float>(playfieldHeight) * 0.5f - paddleHalfHeight;
+    rect.y = playfieldHeight * 0.5f - paddleHalfHeight;
     rect.w = paddleHalfWidth * 2.0f;
     rect.h = paddleHalfHeight * 2.0f;
     return rect;
 }
 
-SDL_FRect rightPaddle(int playfieldWidth,
-                      int playfieldHeight,
+SDL_FRect rightPaddle(float playfieldWidth,
+                      float playfieldHeight,
                       float paddleHalfWidth,
                       float paddleHalfHeight,
                       float wallInset)
 {
     SDL_FRect rect{};
-    rect.x = static_cast<float>(playfieldWidth) - wallInset - paddleHalfWidth * 2.0f;
-    rect.y = static_cast<float>(playfieldHeight) * 0.5f - paddleHalfHeight;
+    rect.x = playfieldWidth - wallInset - paddleHalfWidth * 2.0f;
+    rect.y = playfieldHeight * 0.5f - paddleHalfHeight;
     rect.w = paddleHalfWidth * 2.0f;
     rect.h = paddleHalfHeight * 2.0f;
     return rect;
 }
 
-SDL_FRect ball(int playfieldWidth, int playfieldHeight, float ballHalfSize)
+SDL_FRect ball(float playfieldWidth, float playfieldHeight, float ballHalfSize)
 {
     SDL_FRect rect{};
-    rect.x = static_cast<float>(playfieldWidth) * 0.5f - ballHalfSize;
-    rect.y = static_cast<float>(playfieldHeight) * 0.5f - ballHalfSize;
+    rect.x = playfieldWidth * 0.5f - ballHalfSize;
+    rect.y = playfieldHeight * 0.5f - ballHalfSize;
     rect.w = ballHalfSize * 2.0f;
     rect.h = ballHalfSize * 2.0f;
     return rect;
 }
 
-std::vector<SDL_FRect> centerDashSegments(int playfieldWidth,
-                                          int playfieldHeight,
+std::vector<SDL_FRect> centerDashSegments(float playfieldWidth,
+                                          float playfieldHeight,
                                           int segmentCount,
                                           float dashWidth,
                                           float dashHeight,
@@ -55,7 +55,7 @@ std::vector<SDL_FRect> centerDashSegments(int playfieldWidth,
         return dashes;
     }
 
-    const float dashX = static_cast<float>(playfieldWidth) * 0.5f - dashWidth * 0.5f;
+    const float dashX = playfieldWidth * 0.5f - dashWidth * 0.5f;
 
     if (segmentCount == 1)
     {
@@ -63,7 +63,7 @@ std::vector<SDL_FRect> centerDashSegments(int playfieldWidth,
         // matches the defensive case documented in the header.
         SDL_FRect rect{};
         rect.x = dashX;
-        rect.y = static_cast<float>(playfieldHeight) * 0.5f - dashHeight * 0.5f;
+        rect.y = playfieldHeight * 0.5f - dashHeight * 0.5f;
         rect.w = dashWidth;
         rect.h = dashHeight;
         dashes.push_back(rect);

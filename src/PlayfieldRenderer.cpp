@@ -2,8 +2,8 @@
 
 #include "PlayfieldLayout.h"
 
-PlayfieldRenderer::PlayfieldRenderer(int playfieldWidth,
-                                     int playfieldHeight,
+PlayfieldRenderer::PlayfieldRenderer(float playfieldWidth,
+                                     float playfieldHeight,
                                      int segmentCount,
                                      float dashWidth,
                                      float dashHeight,

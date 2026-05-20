@@ -23,8 +23,8 @@ public:
     //
     // No SDL renderer is required at construction; only draw() touches SDL. Tests can therefore inspect centerDashes()
     // without bringing up SDL video.
-    PlayfieldRenderer(int playfieldWidth,
-                      int playfieldHeight,
+    PlayfieldRenderer(float playfieldWidth,
+                      float playfieldHeight,
                       int segmentCount,
                       float dashWidth,
                       float dashHeight,
