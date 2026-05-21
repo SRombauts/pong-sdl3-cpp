@@ -17,15 +17,18 @@
 //
 // Mapping controllers to helpers:
 //
-//   - Absolute-position (mouse, AI absolute-intercept) -> clampPaddleCenterY(targetY, …): snap to the target,
+//   - Absolute-position (mouse, AI absolute-intercept) -> PaddleMotion::clampCenterY(targetY, …): snap to the target,
 //     enforce the playfield bounds, no rate limit.
-//   - Velocity-style (keyboard, stick-as-velocity)     -> stepPaddleCenterY(axis, …, speed, dt): per-tick step
-//     capped at `speed * dt`, then clamped to the playfield via clampPaddleCenterY.
+//   - Velocity-style (keyboard, stick-as-velocity)     -> PaddleMotion::stepCenterY(axis, …, speed, dt): per-tick
+//     step capped at `speed * dt`, then clamped to the playfield via PaddleMotion::clampCenterY.
 //
 // A single unified API was considered (one struct with both an axis and an optional target) and rejected: mixing
 // the two families behind one signature forced an artificial speed cap on the absolute-position path that does not
 // match the historical reference, and introduced a precedence rule for a "both set" combination no real controller
 // produces.
+
+namespace PaddleMotion
+{
 
 // Clamp a paddle's center-Y so the whole rectangle stays inside the playfield's vertical bounds.
 //
@@ -39,7 +42,7 @@
 // Defensive case: when 2 * halfHeight > playfieldHeight the two clamp bounds cross (`halfHeight` > `playfieldHeight -
 // halfHeight`), so the function returns the playfield's vertical midpoint instead. The paddle then visibly extends
 // past both walls, but the helper never returns NaN, asserts, or picks an arbitrary edge.
-[[nodiscard]] float clampPaddleCenterY(float centerY, float halfHeight, float playfieldHeight);
+[[nodiscard]] float clampCenterY(float centerY, float halfHeight, float playfieldHeight);
 
 // Velocity-style per-tick step. Advance a paddle's center-Y by one tick under an axis intent in [-1, +1], where
 // +1 means "down" per the +Y-down convention documented in Playfield.h.
@@ -47,7 +50,7 @@
 // Algorithm:
 //   1. Compute the requested displacement `axis * speed * dtSeconds`, capped in magnitude at `speed * dtSeconds`
 //      so a buggy controller returning `axis = 2.0f` cannot move the paddle faster than the speed cap.
-//   2. Apply the capped displacement, then clamp via clampPaddleCenterY.
+//   2. Apply the capped displacement, then clamp via clampCenterY.
 //
 // Properties guaranteed by this shape (covered by unit tests):
 //   - Framerate independence: one big `dt` step matches N small `dt` steps of equal sum.
@@ -56,11 +59,13 @@
 // Defensive case: a negative `speed` or `dtSeconds` collapses the cap to 0, so the call is a no-op (after the
 // trailing clamp). The production caller never passes negatives -- FrameTiming::secondsBetween clamps non-monotonic
 // deltas to 0.0 and `speed` is a tuning constant -- but the helper is unit-tested and reusable, so it never lets a
-// `std::clamp(x, lo, hi)` with `lo > hi` slip through. `halfHeight < 0` is handled by clampPaddleCenterY's own
-// boundary defense.
-[[nodiscard]] float stepPaddleCenterY(float axis,
-                                      float currentCenterY,
-                                      float halfHeight,
-                                      float speed,
-                                      float playfieldHeight,
-                                      double dtSeconds);
+// `std::clamp(x, lo, hi)` with `lo > hi` slip through. `halfHeight < 0` is handled by clampCenterY's own boundary
+// defense.
+[[nodiscard]] float stepCenterY(float axis,
+                                float currentCenterY,
+                                float halfHeight,
+                                float speed,
+                                float playfieldHeight,
+                                double dtSeconds);
+
+} // namespace PaddleMotion

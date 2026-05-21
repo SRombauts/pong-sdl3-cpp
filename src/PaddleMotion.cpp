@@ -2,7 +2,10 @@
 
 #include <algorithm>
 
-float clampPaddleCenterY(float centerY, float halfHeight, float playfieldHeight)
+namespace PaddleMotion
+{
+
+float clampCenterY(float centerY, float halfHeight, float playfieldHeight)
 {
     const float minCenter = halfHeight;
     const float maxCenter = playfieldHeight - halfHeight;
@@ -17,12 +20,12 @@ float clampPaddleCenterY(float centerY, float halfHeight, float playfieldHeight)
     return std::clamp(centerY, minCenter, maxCenter);
 }
 
-float stepPaddleCenterY(float axis,
-                        float currentCenterY,
-                        float halfHeight,
-                        float speed,
-                        float playfieldHeight,
-                        double dtSeconds)
+float stepCenterY(float axis,
+                  float currentCenterY,
+                  float halfHeight,
+                  float speed,
+                  float playfieldHeight,
+                  double dtSeconds)
 {
     // Defend at the boundary: negative `speed` or negative `dtSeconds` would make `maxStep` negative, and
     // `std::clamp(x, -maxStep, maxStep)` below becomes `std::clamp(x, lo, hi)` with `lo > hi` -- undefined behavior per
@@ -34,5 +37,7 @@ float stepPaddleCenterY(float axis,
     // Single clamp covers both directions and also catches out-of-range axis values (e.g. a buggy controller returning
     // axis = 2.0f cannot move the paddle faster than the speed cap).
     const float cappedDelta = std::clamp(axis * maxStep, -maxStep, maxStep);
-    return clampPaddleCenterY(currentCenterY + cappedDelta, halfHeight, playfieldHeight);
+    return clampCenterY(currentCenterY + cappedDelta, halfHeight, playfieldHeight);
 }
+
+} // namespace PaddleMotion
