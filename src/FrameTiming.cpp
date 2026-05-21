@@ -1,5 +1,8 @@
 #include "FrameTiming.h"
 
+namespace FrameTiming
+{
+
 namespace
 {
 constexpr double kNanosecondsPerSecond = 1.0e9;
@@ -13,3 +16,5 @@ double secondsBetween(std::uint64_t prevNs, std::uint64_t nowNs)
     }
     return static_cast<double>(nowNs - prevNs) / kNanosecondsPerSecond;
 }
+
+} // namespace FrameTiming

@@ -57,13 +57,13 @@ Keep **data** (structs, tuning, cached rects) separate from **algorithms** (coll
 - **Const-correct interfaces, value types at boundaries** — `const` query methods; `const&` or pass-by-value for small PODs; return fresh values rather than mutating caller state unless the API is explicitly in-out.
 - **`std::string_view` for non-owning string params.** Use `const std::string&` only when you genuinely need a `std::string` API inside.
 - **Delete copy / move on owners and polymorphic bases.** Mark all four special members explicitly — slicing and accidental copies of SDL handles are bugs, not features.
-- **Defend at the boundary** — pure helpers handle degenerate inputs and document the choice in the header once, then test it (`secondsBetween` → `0.0` on non-monotonic input; `centerDashSegments(0, …)` → empty vector).
+- **Defend at the boundary** — pure helpers handle degenerate inputs and document the choice in the header once, then test it (`FrameTiming::secondsBetween` → `0.0` on non-monotonic input; `centerDashSegments(0, …)` → empty vector).
 
 **Smells:** a helper that reads `Application`, SDL, or file-scope mutable state; a member function that mixes input polling with motion math; a `constexpr` on something that still allocates; an owner with implicit copy/move; `const std::string&` where `std::string_view` would do; a new SDL API called from more than one TU.
 
 ## Patterns worth copying
 
-- **Free function + explicit inputs** — testable without a window (`secondsBetween`, layout helpers).
+- **Free function + explicit inputs** — testable without a window (`FrameTiming::secondsBetween`, layout helpers).
 - **Cache at construction** — `PlayfieldRenderer` builds `m_centerDashes` once; `draw()` only blits.
 - **Header stays SDL-free when cheap** — forward-declare SDL types; hide heavy includes behind `unique_ptr`.
 - **Separate "compute rects" from "draw rects"** — the compute half is pure and tested; the draw half is a thin SDL loop. Same shape works as a sink/callback when even the intermediate `vector` would allocate per frame (`TextRenderer::drawText` passes a `[renderer](const SDL_FRect&){…}` lambda to the shared inner helper).
