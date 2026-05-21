@@ -64,6 +64,7 @@ set(PONG_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockFake.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockSdlTicks.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyboardState.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Paddle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PaddleMotion.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlayfieldLayout.cpp
@@ -78,6 +79,7 @@ set(PONG_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockFake.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ClockSdlTicks.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FrameTiming.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyboardState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Paddle.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PaddleMotion.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Playfield.h
