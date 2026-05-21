@@ -54,7 +54,7 @@ The PR is intentionally plumbing-only: it ships zero player-visible change. Keep
 - Add `src/NullPaddleController.{h,cpp}` (or header-only) implementing `IPaddleController::tick` as `return {0.0f, std::nullopt};`. This is the default Application uses until the next PR wires the keyboard controller in. Tests live in `tests/NullPaddleControllerTest.cpp` and assert the no-input contract against a few fixture `KeyboardState` values.
 - In `Application`:
   - Add two `std::unique_ptr<IPaddleController>` members, defaulted in the constructor to `NullPaddleController`. Accept overrides via constructor parameters (defaulted to `nullptr`, matching the `IClock` / `IRandomSource` injection pattern already in place) so tests can substitute a scripted fake.
-  - In `update(dtSeconds)`, snapshot the keyboard once, call each controller's `tick`, then call `stepPaddleCenterY` on each paddle. Both controllers return a no-op request for this PR, so the paddles do not move — but the wiring is exercised at runtime, which avoids a "dead code" review concern.
+  - In `update(dtSeconds)`, snapshot the keyboard once, call each controller's `tick`, then call `PaddleMotion::stepCenterY` on each paddle. Both controllers return a no-op request for this PR, so the paddles do not move — but the wiring is exercised at runtime, which avoids a "dead code" review concern.
 - Wire the new sources / headers into `PONG_SRC` / `PONG_INC` (top-level `CMakeLists.txt`) and the test target's source list (`tests/CMakeLists.txt`).
 - Add `tests/KeyboardStateTest.cpp` covering the `isDown` predicate (key present, key absent, all-keys-up default state, and the builder method round-tripping a known scancode set).
 - Add `tests/NullPaddleControllerTest.cpp` covering the no-input contract under several fixture `KeyboardState` values (empty, all keys down, a few representative keys down).
@@ -104,7 +104,7 @@ The first user-visible PR of the milestone: implement `KeyboardPaddleController`
 #### Acceptance criteria
 
 - Both local players can move their paddles with the keyboard (`W`/`Z` and `S` for the left paddle; `Up` and `Down` for the right). Releasing a key leaves the paddle stationary; pressing the opposite-direction keys at the same time leaves it stationary.
-- Paddle motion is framerate-independent: covered by the `stepPaddleCenterY` test from PR 1 and by a brief manual check that resizing the window (which changes the visual frame rate when V-Sync is on) does not change the perceived paddle speed.
+- Paddle motion is framerate-independent: covered by the `PaddleMotion::stepCenterY` test from PR 1 and by a brief manual check that resizing the window (which changes the visual frame rate when V-Sync is on) does not change the perceived paddle speed.
 - The paddle update step in `Application` reads input *only* through `IPaddleController`; no direct call to `SDL_GetKeyboardState`, `SDL_GetMouseState`, or any gamepad function. The only SDL input call in the milestone is `snapshotKeyboardState()` in `KeyboardState.cpp`.
 - Paddles remain clamped inside the playfield at all times (covered by the clamping tests; verifiable manually by holding a direction key against the wall).
 - The new `KeyboardPaddleController` tests pass locally and in CI on the three supported platforms; every test added by earlier PRs in this milestone still passes.

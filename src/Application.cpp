@@ -165,7 +165,7 @@ int Application::run()
 double Application::tickFrameClock()
 {
     const std::uint64_t now = m_clock->now();
-    const double dtSeconds = secondsBetween(m_lastTickNs, now);
+    const double dtSeconds = FrameTiming::secondsBetween(m_lastTickNs, now);
     m_lastTickNs = now;
     return dtSeconds;
 }

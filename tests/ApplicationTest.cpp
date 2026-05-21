@@ -39,7 +39,8 @@ TEST_CASE("Application::tickFrameClock drives dtSeconds via the injected IClock"
     // Re-check zero-advance after real advances: catches a clock accidentally wired to a constant.
     CHECK(app.tickFrameClock() == doctest::Approx(0.0));
 
-    // Backward clock: secondsBetween() clamps to 0.0 so tickFrameClock can't feed a negative dt into update().
+    // Backward clock: FrameTiming::secondsBetween() clamps to 0.0 so tickFrameClock can't feed a negative dt into
+    // update().
     fake->setNow(0ULL);
     CHECK(app.tickFrameClock() == doctest::Approx(0.0));
 }

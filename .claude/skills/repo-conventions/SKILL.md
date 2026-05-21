@@ -32,6 +32,11 @@ description: Repository layout and naming conventions. Use to find or place file
 - Test files mirror the unit they test, in CamelCase, with a `Test` suffix: tests for `Application` go into `tests/ApplicationTest.cpp`. The doctest entry point stays at `tests/main.cpp`.
 - CMake target names use kebab-case (`pong-sdl3-cpp`, `pong-sdl3-cpp-tests`).
 
+## Namespaces
+
+- **Pure free-function modules wrap their API in a namespace matching the file/module name.** `TextRenderer.h` exposes `TextRenderer::drawText`, `TextRenderer::drawTextCentered`, etc.; `PlayfieldLayout.h` exposes `PlayfieldLayout::ball`; the constants in `Playfield.h` live in `Playfield::`. New modules of this shape (`PaddleMotion::stepCenterY`, `PaddleMotion::clampCenterY`) follow the same pattern. The namespace lets function names drop the redundant module prefix (`stepCenterY` rather than `stepPaddleCenterY`) and makes the call site self-documenting about which header to include.
+- **Struct- or class-dominant headers keep their associated free functions flat.** `Paddle.h` ships `struct Paddle` plus the free helpers `makePaddle` and `toFRect`; `Score.h` ships `struct Score` plus `setScore`; both stay outside any namespace. The reason is mechanical — a `struct Paddle` and a `namespace Paddle` cannot coexist — and conceptual: the helpers belong to the struct's API surface, so the struct name already disambiguates them at the call site. The same applies to class-dominant headers (`RandomSourceMt19937`).
+
 ## English convention
 
 Use **American English** spelling throughout the project: identifier names, parameter names, code comments, doctest case names, commit messages, PR descriptions, `docs/`, `README.md`, and skill files. The same convention applies to agent-to-user communication in chat and PR reviews so the in-repo wording and the conversation around it stay aligned.

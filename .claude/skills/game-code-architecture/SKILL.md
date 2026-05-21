@@ -53,17 +53,17 @@ Keep **data** (structs, tuning, cached rects) separate from **algorithms** (coll
 - **`constexpr` for compile-time facts** — resolutions, half-extents, dash counts, glyph tables, win scores. Prefer named constants over magic numbers; `static_cast` when mixing `int` and `float`.
 - **Do not `constexpr` what must stay runtime** — injected clock/random, SDL handles, vectors built from caller parameters.
 - **Pure functions** = same inputs → same outputs, no I/O, no globals. `[[nodiscard]]` on pure helpers.
-- **Structs hold state; free functions implement policy** — `Paddle{position, half-size, speed}` + `stepPaddleCenterY(request, …)`; `Score{value, text}` + `setScore(score, newValue)`; never a deep `Paddle::update()` that reads SDL or controllers. When two fields share an invariant (`Score::text == std::to_string(Score::value)`), expose only the setter that maintains it and treat direct field mutation as a review-flagged bug.
+- **Structs hold state; free functions implement policy** — `Paddle{position, half-size, speed}` + `PaddleMotion::stepCenterY(request, …)`; `Score{value, text}` + `setScore(score, newValue)`; never a deep `Paddle::update()` that reads SDL or controllers. When two fields share an invariant (`Score::text == std::to_string(Score::value)`), expose only the setter that maintains it and treat direct field mutation as a review-flagged bug.
 - **Const-correct interfaces, value types at boundaries** — `const` query methods; `const&` or pass-by-value for small PODs; return fresh values rather than mutating caller state unless the API is explicitly in-out.
 - **`std::string_view` for non-owning string params.** Use `const std::string&` only when you genuinely need a `std::string` API inside.
 - **Delete copy / move on owners and polymorphic bases.** Mark all four special members explicitly — slicing and accidental copies of SDL handles are bugs, not features.
-- **Defend at the boundary** — pure helpers handle degenerate inputs and document the choice in the header once, then test it (`secondsBetween` → `0.0` on non-monotonic input; `centerDashSegments(0, …)` → empty vector).
+- **Defend at the boundary** — pure helpers handle degenerate inputs and document the choice in the header once, then test it (`FrameTiming::secondsBetween` → `0.0` on non-monotonic input; `centerDashSegments(0, …)` → empty vector).
 
 **Smells:** a helper that reads `Application`, SDL, or file-scope mutable state; a member function that mixes input polling with motion math; a `constexpr` on something that still allocates; an owner with implicit copy/move; `const std::string&` where `std::string_view` would do; a new SDL API called from more than one TU.
 
 ## Patterns worth copying
 
-- **Free function + explicit inputs** — testable without a window (`secondsBetween`, layout helpers).
+- **Free function + explicit inputs** — testable without a window (`FrameTiming::secondsBetween`, layout helpers).
 - **Cache at construction** — `PlayfieldRenderer` builds `m_centerDashes` once; `draw()` only blits.
 - **Header stays SDL-free when cheap** — forward-declare SDL types; hide heavy includes behind `unique_ptr`.
 - **Separate "compute rects" from "draw rects"** — the compute half is pure and tested; the draw half is a thin SDL loop. Same shape works as a sink/callback when even the intermediate `vector` would allocate per frame (`TextRenderer::drawText` passes a `[renderer](const SDL_FRect&){…}` lambda to the shared inner helper).
