@@ -2,6 +2,9 @@
 
 #include "ClockSdlTicks.h"
 #include "FrameTiming.h"
+#include "KeyboardState.h"
+#include "PaddleControllerNull.h"
+#include "PaddleMotion.h"
 #include "Playfield.h"
 #include "PlayfieldLayout.h"
 #include "PlayfieldRenderer.h"
@@ -20,7 +23,9 @@ Application::Application(std::string title,
                          int width,
                          int height,
                          std::unique_ptr<IClock> clock,
-                         std::unique_ptr<IRandomSource> random)
+                         std::unique_ptr<IRandomSource> random,
+                         std::unique_ptr<IPaddleController> leftController,
+                         std::unique_ptr<IPaddleController> rightController)
     : m_title(std::move(title)), m_width(width), m_height(height),
       m_clock(clock ? std::move(clock) : std::make_unique<ClockSdlTicks>()),
       m_random(random ? std::move(random) : std::make_unique<RandomSourceMt19937>(makeNonDeterministicSeed())),
@@ -29,7 +34,9 @@ Application::Application(std::string title,
                                                       Playfield::kCenterDashSegmentCount,
                                                       Playfield::kCenterDashWidth,
                                                       Playfield::kCenterDashHeight,
-                                                      Playfield::kCenterDashGap))
+                                                      Playfield::kCenterDashGap)),
+      m_leftController(leftController ? std::move(leftController) : std::make_unique<PaddleControllerNull>()),
+      m_rightController(rightController ? std::move(rightController) : std::make_unique<PaddleControllerNull>())
 {
     // Seed the paddles via the pure makePaddle helper so the "inset from the side wall, vertically centered" placement
     // rule lives in one tested function rather than twice inline here.
@@ -193,6 +200,20 @@ bool Application::pollEvents()
 
 void Application::update(double dtSeconds)
 {
+    // One keyboard snapshot per frame, shared by every controller: centralising the call keeps SDL_GetKeyboardState's
+    // blast radius to snapshotKeyboardState() (single-owner-per-SDL-API rule) and the ~512-byte copy is cheap.
+    const KeyboardState keyboard = snapshotKeyboardState();
+    const PaddleControllerRequest leftRequest = m_leftController->tick(keyboard);
+    const PaddleControllerRequest rightRequest = m_rightController->tick(keyboard);
+
+    // Velocity-style step only. PaddleControllerRequest::targetY is unused this milestone -- no controller in scope
+    // sets it -- and the absolute-position dispatch (PaddleMotion::clampCenterY) lands together with the mouse / AI
+    // controllers that need it.
+    m_leftPaddle.centerY =
+        PaddleMotion::stepCenterY(m_leftPaddle, leftRequest.axis, Playfield::kLogicalHeight, dtSeconds);
+    m_rightPaddle.centerY =
+        PaddleMotion::stepCenterY(m_rightPaddle, rightRequest.axis, Playfield::kLogicalHeight, dtSeconds);
+
     placeholderScoreDriver(dtSeconds);
 }
 
