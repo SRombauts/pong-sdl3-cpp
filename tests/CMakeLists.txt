@@ -5,6 +5,7 @@ add_executable(pong-sdl3-cpp-tests
     ApplicationTest.cpp
     FrameTimingTest.cpp
     KeyboardStateTest.cpp
+    PaddleControllerNullTest.cpp
     PaddleMotionTest.cpp
     PaddleTest.cpp
     PlayfieldLayoutTest.cpp
