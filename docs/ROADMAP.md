@@ -136,15 +136,17 @@ Goal: make the two paddles controllable, with an input layer that other devices 
 Scope:
 
 - Introduce a `Paddle` struct with position, half-size, and speed; replace the hard-coded paddle rectangles from the previous milestone by reading from these structs.
-- Introduce a small `PaddleController` abstraction (one instance per paddle) so the paddle's update step does not depend directly on a specific input device. A controller returns a per-tick request expressed both as a desired axis value in `[-1, +1]` (used by digital and stick-as-velocity inputs) and an optional target Y (used by mouse and AI). The paddle moves toward the target while remaining clamped by the paddle's speed cap, so no controller can teleport the paddle.
-- Implement `KeyboardPaddleController` as the first concrete controller. Map W and Z to "up" / S to "down" for the left paddle, and Up / Down arrows for the right paddle. The controller reads its key state through a small adapter (e.g. a `KeyboardState` struct populated from `SDL_GetKeyboardState`), not directly from SDL, so tests can drive it with a fake state snapshot.
+- Introduce two pure paddle-motion helpers, split by controller family rather than unified behind a single request type, because the two families have genuinely different physics (see also the **Historical references** section in [`README.md`](../README.md)):
+  - **Absolute-position** (`clampPaddleCenterY(targetY, halfHeight, playfieldHeight)`): used by mouse and absolute-intercept AI controllers. Snaps the paddle to the controller's target Y and enforces the playfield bounds, with no rate limit — mirroring the analog paddle behavior of the original Atari Pong (1972), where the potentiometer's resistance set the paddle position directly each frame.
+  - **Velocity-style** (`stepPaddleCenterY(axis, …, speed, dt)`): used by keyboard and stick-as-velocity controllers. Takes an axis intent in `[-1, +1]` and advances the paddle by a per-tick displacement capped at `speed * dt`, then clamps to the playfield. Digital inputs need this cap to feel playable.
+- Introduce a small `PaddleController` abstraction (one instance per paddle) so the paddle's update step does not depend directly on a specific input device. The abstraction has two concrete shapes mirroring the two helpers above (an axis-emitting variant and a target-emitting variant); each concrete controller picks the shape that matches its hardware.
+- Implement `KeyboardPaddleController` as the first concrete controller (axis-style). Map W and Z to "up" / S to "down" for the left paddle, and Up / Down arrows for the right paddle. The controller reads its key state through a small adapter (e.g. a `KeyboardState` struct populated from `SDL_GetKeyboardState`), not directly from SDL, so tests can drive it with a fake state snapshot.
 - Add keyboard input state plumbing.
 - Move paddles using a variable timestep driven by the per-frame delta time.
 - Clamp paddles inside the playfield.
 - Add unit tests for the pure logic of this milestone (TDD-friendly):
-  - Paddle clamping to playfield bounds: top edge, bottom edge, no-op interior, paddle larger than the playfield as a defensive case.
-  - Paddle update step: given a `PaddleController` request, the current position, the speed cap, and `dt`, return the new position. Verifies that the speed cap always wins over a far target Y (no teleport), and that motion is framerate-independent (one large `dt` and many small `dt`s of equal sum produce the same total displacement).
-  - Axis-vs-target-Y precedence inside the paddle update step (which input wins when both are present, and why); the precedence is documented and tested.
+  - `clampPaddleCenterY`: top edge, bottom edge, no-op interior, paddle larger than the playfield as a defensive case, and the "no rate limit" property (a far target snaps onto the wall in one call, not partway).
+  - `stepPaddleCenterY`: axis-driven motion (`axis = ±1` matches `±speed * dt`), out-of-range axis is still capped by `speed * dt` (no teleport), negative `speed` or `dt` collapses to a no-op, and motion is framerate-independent (one large `dt` matches many small `dt`s of equal sum).
   - `KeyboardPaddleController` against a fake `KeyboardState`: W/Z held → axis = -1, S held → axis = +1, both held → axis = 0, neither held → axis = 0; same matrix for the right paddle's arrow keys.
 
 Non-goals:

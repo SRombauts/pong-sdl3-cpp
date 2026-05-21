@@ -31,6 +31,22 @@ Application::Application(std::string title,
                                                       Playfield::kCenterDashHeight,
                                                       Playfield::kCenterDashGap))
 {
+    // Seed the paddles via the pure makePaddle helper so the "inset from the side wall, vertically centered" placement
+    // rule lives in one tested function rather than twice inline here.
+    m_leftPaddle = makePaddle(PaddleSide::Left,
+                              Playfield::kLogicalWidth,
+                              Playfield::kLogicalHeight,
+                              Playfield::kPaddleHalfWidth,
+                              Playfield::kPaddleHalfHeight,
+                              Playfield::kWallInset,
+                              Playfield::kPaddleSpeed);
+    m_rightPaddle = makePaddle(PaddleSide::Right,
+                               Playfield::kLogicalWidth,
+                               Playfield::kLogicalHeight,
+                               Playfield::kPaddleHalfWidth,
+                               Playfield::kPaddleHalfHeight,
+                               Playfield::kWallInset,
+                               Playfield::kPaddleSpeed);
 }
 
 Application::~Application()
@@ -212,21 +228,16 @@ void Application::render()
     // White-on-black is the only palette the static playfield needs.
     SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
 
-    const SDL_FRect leftPaddle = PlayfieldLayout::leftPaddle(Playfield::kLogicalWidth,
-                                                             Playfield::kLogicalHeight,
-                                                             Playfield::kPaddleHalfWidth,
-                                                             Playfield::kPaddleHalfHeight,
-                                                             Playfield::kWallInset);
-    const SDL_FRect rightPaddle = PlayfieldLayout::rightPaddle(Playfield::kLogicalWidth,
-                                                               Playfield::kLogicalHeight,
-                                                               Playfield::kPaddleHalfWidth,
-                                                               Playfield::kPaddleHalfHeight,
-                                                               Playfield::kWallInset);
-    const SDL_FRect ball =
+    const SDL_FRect leftPaddleRect = toFRect(m_leftPaddle);
+    const SDL_FRect rightPaddleRect = toFRect(m_rightPaddle);
+    // Placeholder ball: recomputed every frame from PlayfieldLayout::ball because no Ball entity exists yet. Replaced
+    // by the Ball-and-collisions milestone with a Ball{centerX, centerY, halfSize, velocity} struct seeded once and
+    // moved per tick, mirroring the Paddle pattern above.
+    const SDL_FRect ballRect =
         PlayfieldLayout::ball(Playfield::kLogicalWidth, Playfield::kLogicalHeight, Playfield::kBallHalfSize);
-    SDL_RenderFillRect(m_renderer, &leftPaddle);
-    SDL_RenderFillRect(m_renderer, &rightPaddle);
-    SDL_RenderFillRect(m_renderer, &ball);
+    SDL_RenderFillRect(m_renderer, &leftPaddleRect);
+    SDL_RenderFillRect(m_renderer, &rightPaddleRect);
+    SDL_RenderFillRect(m_renderer, &ballRect);
 
     // Static-chrome draw: the dash list was computed once at construction; no per-frame layout math here.
     m_playfield->draw(m_renderer);

@@ -28,45 +28,6 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 > The following deliverables turn the static paddles from the previous milestone into player-controlled entities, behind an input abstraction that future milestones (mouse, gamepad, AI) can plug into without touching the paddle update step. Each entry below is intended to map to one pull request and to leave the game in a working, compilable state.
 
-### Introduce the `Paddle` struct and the pure paddle-motion helpers
-
-#### Description
-
-Before any input layer lands, lock in the data shape paddles will carry for the rest of the project (position, half-extents, speed cap) and the pure motion math that the controller-driven update step will call into. Both the clamping helper and the per-tick update step are free functions in their own translation unit, with no SDL include, so they are unit-tested in isolation and reused unchanged by every later controller (keyboard, mouse, gamepad, AI).
-
-This issue is intentionally the smallest cut in the milestone: it introduces zero behavior change for the player (the paddles still draw at their static default positions) and zero coupling to SDL input. The next issues add the input seam on top of this foundation.
-
-#### Tasks
-
-- Add `src/Paddle.h` (header-only) defining `struct Paddle { float centerX; float centerY; float halfWidth; float halfHeight; float speed; };`. Storing the *center* (not the top-left corner) lets the AABB collision math in the **Ball and collisions** milestone use `Paddle` values directly without scattering `+halfHeight` / `-halfHeight` arithmetic; document the convention in a header-level comment. Provide a small `SDL_FRect toFRect(const Paddle&)` free function in a `.cpp` (so the header stays SDL-free) for the renderer's convenience.
-- Add `src/PaddleMotion.{h,cpp}` exposing pure free functions:
-  - `struct PaddleControllerRequest { float axis; std::optional<float> targetY; };` — `axis` is in `[-1, +1]` with `+1` = down to match the `+Y` down convention documented in `Playfield.h`; `targetY` is in logical pixels and, when present, names an absolute center-Y the controller is aiming at.
-  - `float clampPaddleCenterY(float centerY, float halfHeight, int playfieldHeight)` — keeps the paddle wholly inside the playfield. Cover the defensive case where `2 * halfHeight > playfieldHeight` (return the playfield's vertical midpoint so the paddle is centered rather than asserting or producing NaN).
-  - `float stepPaddleCenterY(PaddleControllerRequest request, float currentCenterY, float halfHeight, float speed, int playfieldHeight, double dtSeconds)` — applies the request, caps motion at `speed * dtSeconds`, then clamps via `clampPaddleCenterY`. Precedence when both fields are set: `targetY` wins (it is the more specific intent — mouse and AI aim at a point; `axis` is only a velocity hint). Record the precedence both in the header comment and in the test names.
-- Wire `src/Paddle.h` / `src/PaddleMotion.{h,cpp}` into `PONG_SRC` / `PONG_INC` in the top-level `CMakeLists.txt`. The implementation file for `Paddle::toFRect` (e.g. `src/Paddle.cpp`) goes into `PONG_SRC` as well, since it carries the only SDL include for this type.
-- In `Application`, replace the two anonymous `PlayfieldLayout::leftPaddle()` / `rightPaddle()` call sites in `render()` with two `Paddle` member instances seeded from the same `Playfield::k…` constants. The paddles still draw at their default positions; no movement yet. Keep the layout helpers untouched — they are still the source of truth for the *default* center-Y; tests under `PlayfieldLayoutTest.cpp` keep covering them.
-- Add `tests/PaddleMotionTest.cpp` covering:
-  - `clampPaddleCenterY` — top edge (centerY < halfHeight), bottom edge (centerY > playfieldHeight - halfHeight), interior no-op, and the defensive paddle-larger-than-playfield case.
-  - `stepPaddleCenterY` with `axis = ±1` and no target — velocity is `± speed`, displacement is `± speed * dt`, and the new center-Y is clamped to the playfield bounds (no escape on a single huge `dt`).
-  - **Framerate independence**: one `dt = 0.1s` step and ten `dt = 0.01s` steps with the same axis produce the same final center-Y within a tight tolerance.
-  - **No-teleport guarantee**: with `targetY` set arbitrarily far from `currentCenterY`, the displacement is still capped at `speed * dt`; only over many ticks does the paddle reach the target.
-  - **Axis-vs-target precedence**: when both `axis = -1` (up) and `targetY = currentCenterY + 100` (down) are present, the paddle moves down (target wins). One `SUBCASE` per documented combination — axis only, target only, both present, neither (no-op).
-
-#### Acceptance criteria
-
-- The window still shows the same static playfield as the previous milestone — paddles, ball, dashed center line, placeholder score — with no visual change.
-- `Paddle.h` and `PaddleMotion.h` contain no `#include <SDL3/SDL.h>`. Only `Paddle.cpp` and `Application.cpp` touch SDL types for this milestone.
-- The new unit tests pass locally and in CI on Windows, Linux, and macOS. The existing tests (`Application`, `FrameTiming`, `PlayfieldLayout`, `PlayfieldRenderer`, `RandomSource`, `TextRenderer`) still pass unchanged.
-- `clang-format --dry-run --Werror` stays clean on all new and edited C++ files.
-
-#### Notes
-
-- The `PaddleControllerRequest` lives in `PaddleMotion.h` rather than in the (later) `PaddleController.h` on purpose: the update step is the only consumer that needs the type, and putting it next to the function that interprets it keeps the precedence rule (target wins) one scroll away from the call site. The controller interface re-uses the same type without duplicating it.
-- `std::optional<float>` is preferred over a sentinel value (`NaN`, `-1.0f`) for `targetY` because the precedence rule reads as `if (request.targetY) { … } else { … }` rather than `if (!std::isnan(request.targetY)) { … }`. The cost is one extra byte per request; this is not on a hot path.
-- `speed` is stored *per Paddle* rather than as a global constant in `Playfield.h` so the **Analog and gamepad controls** and **One-player AI** milestones can give different paddles different caps (e.g. an Easy AI moves slower than the player) without retrofitting the data structure.
-
----
-
 ### Add the `IPaddleController` abstraction and the `KeyboardState` SDL adapter
 
 #### Description
