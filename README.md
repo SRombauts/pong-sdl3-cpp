@@ -22,6 +22,19 @@ Original Atari PONG (1972) arcade machine gameplay video (en) showing output fro
 - Separate core gameplay, rendering, input, and application lifecycle code.
 - Produce a repository that can be extended with menus, AI, sound, and polish.
 
+## Learning goals
+
+Beyond the playable game, this repository is a practice ground for software-engineering methodology - design, architecture, and project planning assited by AI.
+The product target is small enough to finish; the AI tools & methodology are the actual subject of study, and the standards encoded in [`.claude/skills/`](.claude/skills/) and `docs/ROADMAP.md` / `docs/ISSUES.md` are calibrated to that goal:
+
+- Pure-logic helpers ship with tests; SDL stays concentrated at one boundary.
+- Time, randomness, and input go through injected abstractions, never globals.
+- Milestones are sliced into reviewable atomic commits, each with its own focused tests.
+- Design choices are documented with the alternatives that were considered and rejected, not just the picked one.
+- Code review aims for peer-review-quality pushback on design choices rather than agreement.
+
+A contributor - human or AI assistant - on this repo should therefore optimize for clarity of design and reviewability of each step over raw shipping speed.
+
 ## Historical scope
 
 The original Atari Pong arcade game was a local two-player game. This project starts with that simpler two-player scope.
@@ -267,12 +280,12 @@ A detailed roadmap is available in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 Per-task guidance for both human contributors and AI coding agents lives under [`.claude/skills/`](.claude/skills/). Each skill is a small `SKILL.md` with a YAML frontmatter and a focused body covering one topic:
 
-- [`build/`](.claude/skills/build/SKILL.md) — how to build and run the project.
-- [`test/`](.claude/skills/test/SKILL.md) — how to run, filter, or disable the test suite.
-- [`format/`](.claude/skills/format/SKILL.md) — how to format and verify C/C++ sources with `clang-format`.
-- [`repo-conventions/`](.claude/skills/repo-conventions/SKILL.md) — directory layout, naming conventions, and where new code/tests go.
-- [`agent-response-style/`](.claude/skills/agent-response-style/SKILL.md) — default tone and reasoning style for AI coding agents.
-- [`development-workflow/`](.claude/skills/development-workflow/SKILL.md) — branch / commit / PR workflow for working on a numbered task.
+- [`build/`](.claude/skills/build/SKILL.md) - how to build and run the project.
+- [`test/`](.claude/skills/test/SKILL.md) - how to run, filter, or disable the test suite.
+- [`format/`](.claude/skills/format/SKILL.md) - how to format and verify C/C++ sources with `clang-format`.
+- [`repo-conventions/`](.claude/skills/repo-conventions/SKILL.md) - directory layout, naming conventions, and where new code/tests go.
+- [`agent-response-style/`](.claude/skills/agent-response-style/SKILL.md) - default tone and reasoning style for AI coding agents.
+- [`development-workflow/`](.claude/skills/development-workflow/SKILL.md) - branch / commit / PR workflow for working on a numbered task.
 
 Read these before opening a pull request; they are the source of truth for the dev loop.
 
@@ -280,10 +293,10 @@ Read these before opening a pull request; they are the source of truth for the d
 
 The classic Pong paddle was an analog, absolute-position controller. Sources used to inform this project's input design:
 
-- [pong-story.com — Atari arcade Pong (1972)](https://www.pong-story.com/arcade.htm) — the original Atari arcade Pong used a 5KΩ potentiometer driving a 555 timer one-shot. The potentiometer's resistance set the paddle's vertical position once per frame, directly. There was no software- or hardware-imposed "max paddle speed"; the only rate limit was the player's wrist.
-- [falstad.com — Pong paddle positioning](https://www.falstad.com/pong/paddle1.html) — a technical walk-through of the same paddle circuit, with the timing diagram for the 555 one-shot.
+- [pong-story.com - Atari arcade Pong (1972)](https://www.pong-story.com/arcade.htm) - the original Atari arcade Pong used a 5KΩ potentiometer driving a 555 timer one-shot. The potentiometer's resistance set the paddle's vertical position once per frame, directly. There was no software- or hardware-imposed "max paddle speed"; the only rate limit was the player's wrist.
+- [falstad.com - Pong paddle positioning](https://www.falstad.com/pong/paddle1.html) - a technical walk-through of the same paddle circuit, with the timing diagram for the 555 one-shot.
 
-Implication for this codebase: the mouse and AI paddle controllers (introduced from the **Paddle controls** milestone onward in [`docs/ROADMAP.md`](docs/ROADMAP.md)) follow the absolute-position model — they call `PaddleMotion::clampCenterY` directly to snap the paddle to a target Y, with no rate limit. Digital inputs (keyboard) have no notion of "how fast" and instead use the axis-driven `PaddleMotion::stepCenterY` helper with a per-tick speed cap. The two physics live in separate helpers rather than behind a single unified request type, so each controller family carries only the parameters it actually needs.
+Implication for this codebase: the mouse and AI paddle controllers (introduced from the **Paddle controls** milestone onward in [`docs/ROADMAP.md`](docs/ROADMAP.md)) follow the absolute-position model - they call `PaddleMotion::clampCenterY` directly to snap the paddle to a target Y, with no rate limit. Digital inputs (keyboard) have no notion of "how fast" and instead use the axis-driven `PaddleMotion::stepCenterY` helper with a per-tick speed cap. The two physics live in separate helpers rather than behind a single unified request type, so each controller family carries only the parameters it actually needs.
 
 ## Reference media
 
