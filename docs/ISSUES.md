@@ -28,58 +28,11 @@ Issues for later milestones will be added to this file in subsequent batches.
 
 > The following deliverables turn the static paddles from the previous milestone into player-controlled entities, behind an input abstraction that future milestones (mouse, gamepad, AI) can plug into without touching the paddle update step. Each entry below is intended to map to one pull request and to leave the game in a working, compilable state.
 
-### Add the `IPaddleController` abstraction and the `KeyboardState` SDL adapter
-
-#### Description
-
-Introduce the seam between input devices and paddle motion. This issue adds the `IPaddleController` interface (one instance per paddle), a single concrete `NullPaddleController` that returns no input, and a small SDL-fronting `KeyboardState` value type that snapshots the keyboard each frame. After this PR, `Application` reads input through the abstraction instead of touching SDL keyboard APIs directly, but the player still cannot move the paddles because both controllers are null.
-
-The PR is intentionally plumbing-only: it ships zero player-visible change. Keeping the interface and the SDL adapter in their own PR lets the next issue (`KeyboardPaddleController` + wiring) be a focused, easy-to-review slice that is *only* about the keyboard mapping and the integration point.
-
-#### Tasks
-
-- Add `src/PaddleController.h` declaring:
-  ```
-  class IPaddleController {
-  public:
-      virtual ~IPaddleController() = default;
-      // Deleted copy/move, matching IClock / IRandomSource.
-      virtual PaddleControllerRequest tick(const KeyboardState& keyboard) = 0;
-  };
-  ```
-  Document why `tick` takes the keyboard state by reference even though the future mouse/gamepad controllers won't read it: it keeps the signature stable across implementations, mirrors how SDL itself exposes a per-frame snapshot, and lets the **Analog and gamepad controls** milestone extend the parameter list (`MouseState`, `GamepadState`) without breaking the keyboard controller. Alternatives considered (per-controller `update()` with no parameter; a variant input bag) are rejected for the reasons recorded in the header comment.
-- Add `src/KeyboardState.{h,cpp}` defining `struct KeyboardState { /* … */ };` plus a free `KeyboardState snapshotKeyboardState()` that wraps `SDL_GetKeyboardState`. The `struct` exposes a single `bool isDown(SDL_Scancode) const` method so test fixtures can pre-populate a `KeyboardState` without going through SDL. Implementation choices to record in the header:
-  - **Underlying storage**: a `std::array<bool, SDL_SCANCODE_COUNT>` copied from SDL's internal buffer. The copy is a few hundred bytes per frame — well below the rest of the per-frame budget — and isolates the controllers from SDL's internal buffer lifetime. Alternative considered: hold a `const Uint8*` pointer into SDL's buffer (zero-copy but couples the type's lifetime to SDL, and SDL is the only producer of that buffer).
-  - **API surface**: a single `isDown(SDL_Scancode)` rather than a public array, so tests construct fixtures via a builder method (`KeyboardState::withKeysDown({SDL_SCANCODE_W, SDL_SCANCODE_S})`). Scancodes (physical key positions) rather than keycodes (layout-dependent characters) on purpose — W/Z and arrow keys must work identically on QWERTY, AZERTY, and Dvorak.
-- Add `src/NullPaddleController.{h,cpp}` (or header-only) implementing `IPaddleController::tick` as `return {0.0f, std::nullopt};`. This is the default Application uses until the next PR wires the keyboard controller in. Tests live in `tests/NullPaddleControllerTest.cpp` and assert the no-input contract against a few fixture `KeyboardState` values.
-- In `Application`:
-  - Add two `std::unique_ptr<IPaddleController>` members, defaulted in the constructor to `NullPaddleController`. Accept overrides via constructor parameters (defaulted to `nullptr`, matching the `IClock` / `IRandomSource` injection pattern already in place) so tests can substitute a scripted fake.
-  - In `update(dtSeconds)`, snapshot the keyboard once, call each controller's `tick`, then call `PaddleMotion::stepCenterY` on each paddle. Both controllers return a no-op request for this PR, so the paddles do not move — but the wiring is exercised at runtime, which avoids a "dead code" review concern.
-- Wire the new sources / headers into `PONG_SRC` / `PONG_INC` (top-level `CMakeLists.txt`) and the test target's source list (`tests/CMakeLists.txt`).
-- Add `tests/KeyboardStateTest.cpp` covering the `isDown` predicate (key present, key absent, all-keys-up default state, and the builder method round-tripping a known scancode set).
-- Add `tests/NullPaddleControllerTest.cpp` covering the no-input contract under several fixture `KeyboardState` values (empty, all keys down, a few representative keys down).
-
-#### Acceptance criteria
-
-- The window still behaves exactly as in the previous PR: no visible change, no input response.
-- `Application::update` no longer calls `SDL_GetKeyboardState` directly; the only consumer of that SDL API is `snapshotKeyboardState()` in `KeyboardState.cpp`.
-- `IPaddleController::tick` takes `const KeyboardState&` and a controller can be substituted from outside `Application` for testing (verifiable by reading `Application`'s constructor signature).
-- The new unit tests pass locally and in CI on the three supported platforms; existing tests pass unchanged.
-- `clang-format --dry-run --Werror` stays clean on all new and edited files.
-
-#### Notes
-
-- `KeyboardState` could be a `class` with a private array; `struct` + a single accessor is preferred because the type is a value snapshot with no invariants to protect beyond "the array is the right size", and a `struct` reads more naturally at construction sites. If invariants grow (e.g. a "modifier-keys" sub-view), promote to a class then.
-- The keyboard-only `tick` signature is a deliberate scope choice — mouse and gamepad come in the **Analog and gamepad controls** milestone and will *extend* the parameter list, not replace it. If the API churn becomes painful (more than two extensions), revisit by bundling the per-frame input into a single `FrameInputState` value type at that point, not now.
-- `NullPaddleController` is not just a test stub: it is the default whenever an `Application` is constructed without an explicit controller (tests, future menu states where input is paused, debug tooling). Keep it under `src/`, not under `tests/`.
-
----
-
 ### Wire `KeyboardPaddleController` and make both paddles playable
 
 #### Description
 
-The first user-visible PR of the milestone: implement `KeyboardPaddleController`, replace both `NullPaddleController` instances with one keyboard controller per paddle, and verify that motion is framerate-independent end-to-end. After this PR, two local players can rally without a ball — the **Ball and collisions** milestone supplies the ball motion next.
+The first user-visible PR of the milestone: implement `KeyboardPaddleController`, replace both `PaddleControllerNull` instances with one keyboard controller per paddle, and verify that motion is framerate-independent end-to-end. After this PR, two local players can rally without a ball — the **Ball and collisions** milestone supplies the ball motion next.
 
 #### Tasks
 
