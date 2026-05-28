@@ -3,7 +3,7 @@
 #include "ClockSdlTicks.h"
 #include "FrameTiming.h"
 #include "KeyboardState.h"
-#include "PaddleControllerNull.h"
+#include "PaddleControllerKeyboard.h"
 #include "PaddleMotion.h"
 #include "Playfield.h"
 #include "PlayfieldLayout.h"
@@ -35,8 +35,14 @@ Application::Application(std::string title,
                                                       Playfield::kCenterDashWidth,
                                                       Playfield::kCenterDashHeight,
                                                       Playfield::kCenterDashGap)),
-      m_leftController(leftController ? std::move(leftController) : std::make_unique<PaddleControllerNull>()),
-      m_rightController(rightController ? std::move(rightController) : std::make_unique<PaddleControllerNull>())
+      // Default both paddles to keyboard control so a bare Application is immediately playable: left paddle on W/S,
+      // right paddle on Up/Down. Bindings are scancodes, so they track physical key positions across layouts (see
+      // PaddleControllerKeyboard.h).
+      m_leftController(leftController ? std::move(leftController)
+                                      : std::make_unique<PaddleControllerKeyboard>(SDL_SCANCODE_W, SDL_SCANCODE_S)),
+      m_rightController(rightController
+                            ? std::move(rightController)
+                            : std::make_unique<PaddleControllerKeyboard>(SDL_SCANCODE_UP, SDL_SCANCODE_DOWN))
 {
     // Seed the paddles via the pure makePaddle helper so the "inset from the side wall, vertically centered" placement
     // rule lives in one tested function rather than twice inline here.
