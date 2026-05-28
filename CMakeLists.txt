@@ -40,7 +40,7 @@ set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
 set(SDL_UNINSTALL OFF CACHE BOOL "" FORCE)
 
-message (STATUS "Downloading SDL3 release-3.4.8")
+message (STATUS "Downloading SDL3 release-3.4.8 from https://github.com/libsdl-org/SDL.git")
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
@@ -139,7 +139,7 @@ if(BUILD_TESTING)
     set(DOCTEST_WITH_MAIN_IN_STATIC_LIB OFF CACHE BOOL "" FORCE)
     set(DOCTEST_NO_INSTALL ON CACHE BOOL "" FORCE)
 
-    message (STATUS "Downloading doctest v2.5.2")
+    message (STATUS "Downloading doctest v2.5.2 from https://github.com/doctest/doctest.git")
     FetchContent_Declare(
         doctest
         GIT_REPOSITORY https://github.com/doctest/doctest.git
