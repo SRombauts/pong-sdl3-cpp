@@ -14,9 +14,11 @@
 // Owning the bytes -- rather than a const bool* view -- lets the snapshot be returned by value from the factories below
 // and stay frozen for the frame, independent of SDL's mutable buffer.
 //
-// Why scancodes, not keycodes? Scancodes are physical key positions, so the W/Z dual-up binding the future
-// KeyboardPaddleController uses (AZERTY swaps the W and Z physical keys) lands on the same physical key on both
-// layouts. Keycodes would route the binding through the OS layout map and break that property.
+// Why scancodes, not keycodes? Scancodes are physical key positions, so PaddleControllerKeyboard's bindings land on
+// the same physical keys on every layout -- e.g. SDL_SCANCODE_W is the key above S whether its cap reads W (QWERTY) or
+// Z (AZERTY, which swaps those two physical keys). Keycodes would route the binding through the OS layout map and move
+// it to a different physical key. This physical-position property is the load-bearing reason this snapshot stores
+// scancodes.
 //
 // Type shape: struct with a public array because the type is a value snapshot with no invariants to protect; for now
 // an accessor method (isDown) and two static factories (withKeysDown, allKeysDown) cover production reads and test
