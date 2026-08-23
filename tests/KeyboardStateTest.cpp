@@ -42,7 +42,7 @@ TEST_CASE("KeyboardState::withKeysDown: only the listed scancodes report down")
     CHECK(state.isDown(SDL_SCANCODE_W));
     CHECK(state.isDown(SDL_SCANCODE_S));
 
-    // Every other scancode the keyboard controller will look at must still report up.
+    // Scancodes not in the list -- including the other paddle's keys -- must still report up.
     CHECK_FALSE(state.isDown(SDL_SCANCODE_Z));
     CHECK_FALSE(state.isDown(SDL_SCANCODE_UP));
     CHECK_FALSE(state.isDown(SDL_SCANCODE_DOWN));
@@ -52,7 +52,7 @@ TEST_CASE("KeyboardState::withKeysDown: only the listed scancodes report down")
 TEST_CASE("KeyboardState::withKeysDown: empty list leaves every scancode up")
 {
     // Pinned because withKeysDown is the natural fixture for the "no relevant key held" branch in the next PR's
-    // KeyboardPaddleController tests.
+    // PaddleControllerKeyboard tests.
     const KeyboardState state = KeyboardState::withKeysDown({});
     CHECK_FALSE(state.isDown(SDL_SCANCODE_W));
     CHECK_FALSE(state.isDown(SDL_SCANCODE_S));
@@ -79,7 +79,7 @@ TEST_CASE("KeyboardState::allKeysDown: every in-range scancode reports down")
 {
     const KeyboardState state = KeyboardState::allKeysDown();
 
-    // Spot-check the scancodes both paddle controllers will read.
+    // Spot-check a representative spread of scancodes, including both paddles' bindings.
     CHECK(state.isDown(SDL_SCANCODE_W));
     CHECK(state.isDown(SDL_SCANCODE_Z));
     CHECK(state.isDown(SDL_SCANCODE_S));

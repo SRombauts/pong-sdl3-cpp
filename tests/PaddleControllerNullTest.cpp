@@ -26,12 +26,12 @@ TEST_CASE("PaddleControllerNull::tick: empty keyboard yields no input")
 
 TEST_CASE("PaddleControllerNull::tick: every relevant key held yields no input")
 {
-    // The keys the next PR's KeyboardPaddleController will look at -- W, Z, S for the left paddle and Up, Down for
-    // the right -- all held at once. The null controller must still report no input: it ignores its keyboard
-    // argument by design, and this case proves it.
+    // The keys PaddleControllerKeyboard looks at -- W, S for the left paddle and Up, Down for the right -- all held at
+    // once. The null controller must still report no input: it ignores its keyboard argument by design, and this case
+    // proves it.
     PaddleControllerNull controller;
-    const KeyboardState keyboard = KeyboardState::withKeysDown(
-        {SDL_SCANCODE_W, SDL_SCANCODE_Z, SDL_SCANCODE_S, SDL_SCANCODE_UP, SDL_SCANCODE_DOWN});
+    const KeyboardState keyboard =
+        KeyboardState::withKeysDown({SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_UP, SDL_SCANCODE_DOWN});
     expectNoInput(controller.tick(keyboard));
 }
 

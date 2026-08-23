@@ -79,9 +79,9 @@ private:
     // member is constructed eagerly in Application's constructor since the layout math has no SDL dependency.
     std::unique_ptr<PlayfieldRenderer> m_playfield;
     // Player paddles. Stored by value because Paddle is a plain POD. Each paddle owns one IPaddleController; update()
-    // calls tick() on each controller and feeds the resulting axis into PaddleMotion::stepCenterY. Default-constructed
-    // controllers are PaddleControllerNull, so a bare Application leaves both paddles parked at the centered seed
-    // placement produced by makePaddle.
+    // calls tick() on each controller and feeds the resulting axis into PaddleMotion::stepCenterY. When no controller
+    // is injected, the constructor defaults each paddle to a PaddleControllerKeyboard (see the constructor for the key
+    // bindings), so a bare Application is playable with the keyboard out of the box.
     Paddle m_leftPaddle;
     Paddle m_rightPaddle;
     std::unique_ptr<IPaddleController> m_leftController;
